@@ -1,0 +1,20 @@
+{
+    "name": "pkglogger",
+    "version": "1.0.0",
+    "description": "A node.js log utility that logs messages to log files.",
+    "keywords": ["logging"],
+    "licenses": [{
+        "type": "MIT",
+        "url": "http://www.opensource.org/licenses/MIT"
+    }],
+    "author": "Frank Hellwig <frank@hellwig.org>",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fhellwig/pkglogger.git"
+    },
+    "main": "./pkglogger.js",
+    "dependencies": {
+        "strformat": "0.0.x",
+        "pkgfinder": "2.0.x"
+    }
+}
