@@ -38,34 +38,29 @@ var os = require('os'),
     LEVEL_OFF = 7,
     currentLevel = LEVEL_INFO;
 
-function pkglogger(module) {
-    var id;
-    if (module && typeof module.filename === 'string') {
-        id = path.relative(pkg.directory, path.basename(module.filename));
-    } else {
-        id = pkg.name;
-    }
+function pkglogger(name) {
+    name = parseName(name);
     var log = {
-        trace: function () { logMessage(LEVEL_TRACE, id, arguments); },
-        debug: function () { logMessage(LEVEL_DEBUG, id, arguments); },
-        info: function () { logMessage(LEVEL_INFO, id, arguments); },
-        warn: function () { logMessage(LEVEL_WARN, id, arguments); },
-        error: function () { logMessage(LEVEL_ERROR, id, arguments); },
-        fatal: function () { logMessage(LEVEL_FATAL, id, arguments); }
+        trace: function () { logMessage(LEVEL_TRACE, name, arguments); },
+        debug: function () { logMessage(LEVEL_DEBUG, name, arguments); },
+        info:  function () { logMessage(LEVEL_INFO,  name, arguments); },
+        warn:  function () { logMessage(LEVEL_WARN,  name, arguments); },
+        error: function () { logMessage(LEVEL_ERROR, name, arguments); },
+        fatal: function () { logMessage(LEVEL_FATAL, name, arguments); }
     };
     return log;
 }
 
-pkglogger.ALL = LEVEL_ALL;
+pkglogger.ALL   = LEVEL_ALL;
 pkglogger.TRACE = LEVEL_TRACE;
 pkglogger.DEBUG = LEVEL_DEBUG;
-pkglogger.INFO = LEVEL_INFO;
-pkglogger.WARN = LEVEL_WARN;
+pkglogger.INFO  = LEVEL_INFO;
+pkglogger.WARN  = LEVEL_WARN;
 pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
-pkglogger.OFF = LEVEL_OFF;
+pkglogger.OFF   = LEVEL_OFF;
 
-pkglogger.getLevel = function () { return logLevels[currentLevel]; };
+pkglogger.getLevel = function () { return currentLevel; };
 pkglogger.setLevel = function (level) { currentLevel = parseLevel(level); };
 
 if (process.env.LOG_LEVEL) {
@@ -105,6 +100,19 @@ function parseLevel(level) {
     throw new Error('Not a valid log level type: ' + typeof level);
 }
 
+function parseName(name) {
+    if (typeof name === 'undefined') {
+        return pkg.name;
+    }
+    if (typeof name === 'object' && typeof name.filename === 'string') {
+        return pkg.relative(name.filename);
+    }
+    if (typeof name === 'string') {
+        return name;
+    }
+    throw new Error('Not a valid logger name type: ' + typeof name);
+}
+
 function formatMessage(args) {
     var message;
     var arg = args[0];
@@ -127,7 +135,7 @@ function ensureLogDirectory() {
     }
 }
 
-function logMessage(level, id, args) {
+function logMessage(level, name, args) {
     if (level >= currentLevel) {
         ensureLogDirectory();
         var message = formatMessage(args),
@@ -136,7 +144,7 @@ function logMessage(level, id, args) {
             dt = ts.substring(0, ts.indexOf('T')),
             level = logLevels[level],
             filename = strformat('{0}.{1}.log', pkg.name, dt),
-            entry = strformat('{0} {1} {2}[{3}]: {4}', ts, level, id, process.pid, message);
+            entry = strformat('{0} {1} {2} {3}: {4}', ts, level, name, process.pid, message);
         fs.appendFileSync(path.resolve(logDirectory, filename), entry);
     }
 }
