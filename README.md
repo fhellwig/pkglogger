@@ -91,9 +91,12 @@ export LOG_LEVEL=DEBUG
 
 The default log level is INFO.
 
-##Module Name
+##Log Name
 
-The recommended way of creating a log object is by always passing in the `module` value is the argument:
+The log name is used in log entries so that the origin of the message can be
+determined. The log name is set when creating a log object. The recommended way
+of creating a log object is by passing the `module` value to the `pkglogger()`
+function.
 
 ```javascript
 var log = pkglogger(module);
@@ -136,10 +139,15 @@ See Also: [strformat](https://github.com/fhellwig/strformat)
 The log file is created in the application's `logs` subdirectory. This is
 determined using the [pkgfinder](https://github.com/fhellwig/pkgfinder)
 utility. The log filename is the application's name followed by the ISO date
-according to the current UTC time.
+according to the current UTC time. For example:
+
+```no-highlight
+pkglogger.2014-12-26.log 
+```
 
 The format of each log entry is `{timestamp} {level} {name} {pid}: {message}`.
-The name is the log name as described previously.
+The name is the log name as previously discussed. The pid is the process id and
+is useful to determine server restarts within the same log file.
 
 ## License
 
