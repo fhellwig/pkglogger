@@ -35,19 +35,28 @@ var os = require('os'),
     LEVEL_WARN = 4,
     LEVEL_ERROR = 5,
     LEVEL_FATAL = 6,
-    LEVEL_OFF = 7,
-    currentLevel = LEVEL_INFO;
+    LEVEL_OFF = 7;
 
-function pkglogger(name) {
-    name = parseName(name);
-    var log = {
-        trace: function () { logMessage(LEVEL_TRACE, name, arguments); },
-        debug: function () { logMessage(LEVEL_DEBUG, name, arguments); },
-        info:  function () { logMessage(LEVEL_INFO,  name, arguments); },
-        warn:  function () { logMessage(LEVEL_WARN,  name, arguments); },
-        error: function () { logMessage(LEVEL_ERROR, name, arguments); },
-        fatal: function () { logMessage(LEVEL_FATAL, name, arguments); }
-    };
+function pkglogger(module) {
+    if (typeof module !== 'object') {
+        throw new Error ('The pkglogger function requires a module argument.');
+    }
+    if (typeof module.filename !== 'string') {
+        throw new Error ('The module object must have a filename string property.');
+    }
+    var pkg = pkgfinder(module),
+        mod = pkg.relative(module.filename).replace('\\', '/'),
+        env = process.env.LOG_LEVEL,
+        log = { _level: env ? parseLevel(env) : LEVEL_INFO },
+        fun = makeLogFunction(log, pkg.name, mod);
+    log.trace = function () { fun(LEVEL_TRACE, arguments); };
+    log.debug = function () { fun(LEVEL_DEBUG, arguments); };
+    log.info =  function () { fun(LEVEL_INFO,  arguments); };
+    log.warn =  function () { fun(LEVEL_WARN,  arguments); };
+    log.error = function () { fun(LEVEL_ERROR, arguments); };
+    log.fatal = function () { fun(LEVEL_FATAL, arguments); };
+    log.setLevel = function (level) { log._level = parseLevel(level); };
+    log.getLevel = function () { return logLevels[log._level]; };
     return log;
 }
 
@@ -59,13 +68,6 @@ pkglogger.WARN  = LEVEL_WARN;
 pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
 pkglogger.OFF   = LEVEL_OFF;
-
-pkglogger.getLevel = function () { return currentLevel; };
-pkglogger.setLevel = function (level) { currentLevel = parseLevel(level); };
-
-if (process.env.LOG_LEVEL) {
-    currentLevel = parseLevel(process.env.LOG_LEVEL);
-}
 
 function isInteger(n) {
     return n === +n && n === (n | 0);
@@ -114,38 +116,41 @@ function parseName(name) {
 }
 
 function formatMessage(args) {
-    var message;
-    var arg = args[0];
+    var msg,
+        arg = args[0];
     if (typeof arg === 'string') {
-        message = strformat.apply(null, args);
+        msg = strformat.apply(null, args);
     } else {
-        message = '' + arg;
+        msg = '' + arg;
     }
-    return message.replace(/\r?\n/g, os.EOL + '> ') + os.EOL;
+    return msg.replace(/\r?\n/g, os.EOL + '> ') + os.EOL;
 }
 
 function ensureLogDirectory() {
     if (fs.existsSync(logDirectory)) {
         var stats = fs.statSync(logDirectory);
         if (!stats.isDirectory()) {
-            throw new Error("No such directory: " + logDirectory);
+            throw new Error("Not a directory: " + logDirectory);
         } 
     } else {
         fs.mkdirSync(logDirectory);
     }
 }
 
-function logMessage(level, name, args) {
-    if (level >= currentLevel) {
-        ensureLogDirectory();
-        var message = formatMessage(args),
-            now = new Date(),
-            ts = now.toISOString(),
-            dt = ts.substring(0, ts.indexOf('T')),
-            level = logLevels[level],
-            filename = strformat('{0}.{1}.log', pkg.name, dt),
-            entry = strformat('{0} {1} {2} {3}: {4}', ts, level, name, process.pid, message);
-        fs.appendFileSync(path.resolve(logDirectory, filename), entry);
+function makeLogFunction(log, pkgname, modname) {
+    return function (level, args) {
+        if (level >= log._level) {
+            ensureLogDirectory();
+            var pid = process.pid,
+                msg = formatMessage(args),
+                now = new Date(),
+                ts = now.toISOString(),
+                dt = ts.substring(0, ts.indexOf('T')),
+                level = logLevels[level],
+                filename = strformat('{0}.{1}.log', pkg.name, dt),
+                entry = strformat('{0} {1} {2}[{3}] {4}: {5}', ts, level, pkgname, pid, modname, msg);
+            fs.appendFileSync(path.resolve(logDirectory, filename), entry);
+        }
     }
 }
 

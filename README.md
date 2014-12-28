@@ -13,8 +13,8 @@ npm install pkglogger --save
 Create a log object by calling the function exported by the `pkglogger` module and passing in your current module.
 
 ```javascript
-var pkglogger = require('pkglogger');
-var log = pkglogger(module);
+var pkglogger = require('pkglogger'),
+    log = pkglogger(module);
 ```
 
 Call the methods on the log object.
@@ -31,31 +31,31 @@ log.fatal('This is a fatal message.');
 The log file in the `logs` directory will contain these messages:
 
 ```no-highlight
-2014-12-26T13:02:52.667Z INFO test/log-test.js 2924: This is an info message.
-2014-12-26T13:02:52.667Z WARN test/log-test.js 2924: This is a warn message.
-2014-12-26T13:02:52.667Z ERROR test/log-test.js 2924: This is an error message.
-2014-12-26T13:02:52.667Z FATAL test/log-test.js 2924: This is a fatal message.
+2014-12-26T13:02:52.667Z INFO test[2924] log-test.js: This is an info message.
+2014-12-26T13:02:52.667Z WARN test[2924] log-test.js: This is a warn message.
+2014-12-26T13:02:52.667Z ERROR test[2924] log-test.js: This is an error message.
+2014-12-26T13:02:52.667Z FATAL test[2924] log-test.js: This is a fatal message.
 ```
 
 Notice that trace and debug messages are not loggged by default. This can be
-changed by setting the log level using either the `pkglogger.setLevel()`
+changed by setting the log level using either the `log.setLevel()`
 function or by setting the `LOG_LEVEL` environment variable.
 
 ```javascript
-var pkglogger = require('pkglogger');
-pkglogger.setLevel(pkglogger.ALL);
-var log = pkglogger(module);
+var pkglogger = require('pkglogger'),
+    log = pkglogger(module);
+log.setLevel(pkglogger.ALL);
 ```
 
 Now, all six levels are logged.
 
 ```no-highlight
-2014-12-26T13:02:52.664Z TRACE test/log-test.js 2924: This is a trace message.
-2014-12-26T13:02:52.666Z DEBUG test/log-test.js 2924: This is a debug message.
-2014-12-26T13:02:52.667Z INFO test/log-test.js 2924: This is an info message.
-2014-12-26T13:02:52.667Z WARN test/log-test.js 2924: This is a warn message.
-2014-12-26T13:02:52.667Z ERROR test/log-test.js 2924: This is an error message.
-2014-12-26T13:02:52.667Z FATAL test/log-test.js 2924: This is a fatal message.
+2014-12-26T13:02:52.664Z TRACE test[2924] log-test.js: This is a trace message.
+2014-12-26T13:02:52.666Z DEBUG test[2924] log-test.js: This is a debug message.
+2014-12-26T13:02:52.667Z INFO test[2924] log-test.js: This is an info message.
+2014-12-26T13:02:52.667Z WARN test[2924] log-test.js: This is a warn message.
+2014-12-26T13:02:52.667Z ERROR test[2924] log-test.js: This is an error message.
+2014-12-26T13:02:52.667Z FATAL test[2924] log-test.js: This is a fatal message.
 ```
 
 ##Log Levels
@@ -74,15 +74,15 @@ FATAL 6
 OFF   7
 ```
 
-You can set the log level by either calling the `pkglogger.setLevel()` method
-or by setting the `LOG_LEVEL` environment variable. The following all set the
-log level to DEBUG:
+You can set the log level by either calling the `log.setLevel()` method or by
+setting the `LOG_LEVEL` environment variable. The following all set the log
+level to DEBUG:
 
 ```javascript
-pkglogger.setLevel(pkglogger.DEBUG); // using the constant
-pkglogger.setLevel(2);               // or the equivalent number
-pkglogger.setLevel('DEBUG');         // using a string
-pkglogger.setLevel('debug');         // case does not matter
+log.setLevel(pkglogger.DEBUG);  // using the constant
+log.setLevel(2);                // or the equivalent number
+log.setLevel('DEBUG');          // using a string
+log.setLevel('debug');          // case does not matter
 ```
 ```no-highlight
 export LOG_LEVEL=2
@@ -94,7 +94,7 @@ The default log level is INFO.
 ##Log Name
 
 The log name is used in log entries so that the origin of the message can be
-determined. The log name is set when creating a log object. The recommended way
+determined. The log name is set when creating a log object. The required way
 of creating a log object is by passing the `module` value to the `pkglogger()`
 function.
 
@@ -102,13 +102,8 @@ function.
 var log = pkglogger(module);
 ```
 
-The relative path from the application directory to the module filename is
-determined and used in log messages. You can also pass in a string value or
-leave it undefined, in which case the package name is used.
-
-```javascript
-var log = pkglogger('server');
-```
+The relative path from the package directory to the module filename is
+determined and used in log messages.
 
 ##Log Methods
 
@@ -142,12 +137,10 @@ utility. The log filename is the application's name followed by the ISO date
 according to the current UTC time. For example:
 
 ```no-highlight
-pkglogger.2014-12-26.log 
+server.2014-12-26.log 
 ```
 
-The format of each log entry is `{timestamp} {level} {name} {pid}: {message}`.
-The name is the log name as previously discussed. The pid is the process id and
-is useful to determine server restarts within the same log file.
+The format of each log entry is `{timestamp} {level} {package}[{pid}] {module}: {message}`.
 
 ## License
 
