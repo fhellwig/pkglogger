@@ -125,7 +125,7 @@ replaced by the values of any additional arguments using the
 
 - If the first argument is an object, then...
     - If the object has a `message` property, then that message is logged.
-    - Otherwise, if the object is converted to a string and that string becomes the error message.
+    - Otherwise, the object is converted to a string and that string becomes the error message.
 - If the arguments following the `message` parameter are primitive values, then these values are accessed using numerical placeholders. For example, `{0}` is the first argument after the `message` parameter, `{1}` is the second argument after the `message` parameter, and so on.
 - If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
 - If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
