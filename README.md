@@ -120,14 +120,15 @@ log.fatal(message [,args]);
 
 Each of these takes a message string (or an object, such as an Error) as the
 first parameter. The message can contain optional placeholders that are
-replaced by the values of any additional arguments.
+replaced by the values of any additional arguments using the
+[strformat](https://github.com/fhellwig/strformat) utility.
 
-- If the first argument is an object, then that object is converted to a string and becomes the error message.
+- If the first argument is an object, then...
+    - If the object has a `message` property, then that message is logged.
+    - Otherwise, if the object is converted to a string and that string becomes the error message.
 - If the arguments following the `message` parameter are primitive values, then these values are accessed using numerical placeholders. For example, `{0}` is the first argument after the `message` parameter, `{1}` is the second argument after the `message` parameter, and so on.
 - If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
 - If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
-
-See Also: [strformat](https://github.com/fhellwig/strformat)
 
 ##Log File
 
@@ -141,6 +142,21 @@ server.2014-12-26.log
 ```
 
 The format of each log entry is `{timestamp} {level} {package}[{pid}] {module}: {message}`.
+
+The full path of the `logs` directory can be obtained from the `pkglogger.directory` property.
+This is useful for informing the user that an error occurred and where to look for the log file.
+For example:
+
+```javascript
+performAction(function (err) {
+    if (err) {
+        log.fatal(err);
+	console.error("An error occurred. Please examine the latest log file in '" +
+	    pkglogger.directory + "' for details.");
+	process.exit(1);
+    }
+};
+```
 
 ## License
 

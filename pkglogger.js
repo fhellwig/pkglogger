@@ -68,6 +68,7 @@ pkglogger.WARN  = LEVEL_WARN;
 pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
 pkglogger.OFF   = LEVEL_OFF;
+pkglogger.directory = logDirectory;
 
 function isInteger(n) {
     return n === +n && n === (n | 0);
@@ -120,6 +121,8 @@ function formatMessage(args) {
         arg = args[0];
     if (typeof arg === 'string') {
         msg = strformat.apply(null, args);
+    } else if (typeof arg === 'object' && typeof arg.message === 'string') {
+        msg = arg.message;
     } else {
         msg = '' + arg;
     }
