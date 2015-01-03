@@ -45,10 +45,12 @@ function pkglogger(module) {
         throw new Error ('The module object must have a filename string property.');
     }
     var pkg = pkgfinder(module),
-        mod = pkg.relative(module.filename).replace('\\', '/'),
-        env = process.env.LOG_LEVEL,
-        log = { _level: env ? parseLevel(env) : LEVEL_INFO },
-        fun = makeLogFunction(log, pkg.name, mod);
+        path = pkg.relative(module.filename).replace('\\', '/'),
+        name = strformat('{0}/{1}', pkg.name, path),
+        level = process.env.LOG_LEVEL,
+        level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
+        log = { _level: level },
+        fun = makeLogFunction(log, name);
     log.trace = function () { fun(LEVEL_TRACE, arguments); };
     log.debug = function () { fun(LEVEL_DEBUG, arguments); };
     log.info =  function () { fun(LEVEL_INFO,  arguments); };
@@ -82,38 +84,32 @@ function isValidLevel(n) {
     return isInteger(n) && isInRange(n, LEVEL_ALL, LEVEL_OFF);
 }
 
-function parseLevel(level) {
+function parseLevel(level, source) {
+    var retval = null;
     if (typeof level === 'number') {
-        if (!isValidLevel(level)) {
-            throw new Error('Not a valid log level: ' + level);
+        if (isValidLevel(level)) {
+            retval = level;
         }
-        return level;
-    }
-    if (typeof level === 'string') {
+    } else if (typeof level === 'string') {
         var tmp = parseFloat(level);
-        if (!isNaN(tmp)) {
-            return parseLevel(tmp);
+        if (isNaN(tmp)) {
+            index = logLevels.indexOf(level.toUpperCase());
+            if (index >= 0) {
+                retval = index;
+            }
+        } else {
+            if (isValidLevel(tmp)) {
+                retval = tmp;
+            }
         }
-        tmp = logLevels.indexOf(level.toUpperCase());
-        if (tmp < 0) {
-            throw new Error('Not a valid log level: ' + level);
-        }
-        return tmp;
+    } else {
+        throw new Error(strformat("The log level must be a string or a number instead of {0}.", typeof level));
     }
-    throw new Error('Not a valid log level type: ' + typeof level);
-}
-
-function parseName(name) {
-    if (typeof name === 'undefined') {
-        return pkg.name;
+    if (retval === null) {
+        source = source || 'log level';
+        throw new Error(strformat("The {0} {1} is not valid.", source, level));
     }
-    if (typeof name === 'object' && typeof name.filename === 'string') {
-        return pkg.relative(name.filename);
-    }
-    if (typeof name === 'string') {
-        return name;
-    }
-    throw new Error('Not a valid logger name type: ' + typeof name);
+    return retval;
 }
 
 function formatMessage(args) {
@@ -133,14 +129,26 @@ function ensureLogDirectory() {
     if (fs.existsSync(logDirectory)) {
         var stats = fs.statSync(logDirectory);
         if (!stats.isDirectory()) {
-            throw new Error("Not a directory: " + logDirectory);
+            throw new Error(strformat("The file '{0}' is not a directory.", logDirectory));
         } 
     } else {
         fs.mkdirSync(logDirectory);
     }
 }
 
-function makeLogFunction(log, pkgname, modname) {
+function isOn(value) {
+    switch (value) {
+        case 'on':
+            case 'yes':
+            case 'true':
+            case '1':
+            return true;
+        default:
+            return false;
+    }
+}
+
+function makeLogFunction(log, name) {
     return function (level, args) {
         if (level >= log._level) {
             ensureLogDirectory();
@@ -151,8 +159,11 @@ function makeLogFunction(log, pkgname, modname) {
                 dt = ts.substring(0, ts.indexOf('T')),
                 level = logLevels[level],
                 filename = strformat('{0}.{1}.log', pkg.name, dt),
-                entry = strformat('{0} {1} {2}[{3}] {4}: {5}', ts, level, pkgname, pid, modname, msg);
+                entry = strformat('{0} {1} [{2}] {3}: {4}', ts, level, pid, name, msg);
             fs.appendFileSync(path.resolve(logDirectory, filename), entry);
+            if (isOn(process.env.LOG_STDERR)) {
+                process.stderr.write(entry);
+            }
         }
     }
 }

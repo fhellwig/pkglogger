@@ -141,7 +141,7 @@ according to the current UTC time. For example:
 server.2014-12-26.log 
 ```
 
-The format of each log entry is `{timestamp} {level} {package}[{pid}] {module}: {message}`.
+The format of each log entry is `{timestamp} {level} [{pid}] {module}: {message}`.
 
 The full path of the `logs` directory can be obtained from the `pkglogger.directory` property.
 This is useful for informing the user that an error occurred and where to look for the log file.
@@ -157,6 +157,11 @@ performAction(function (err) {
     }
 };
 ```
+
+##Console Log
+
+Log messages can also be copied to `stderr` by setting the `LOG_STDERR`
+environment variable to a value of 'on', 'yes', 'true', or '1'.
 
 ## License
 
