@@ -157,8 +157,9 @@ environment variable to a value of 'on', 'yes', 'true', or '1'.
 
 ###Fatal Log Entries
 
-Fatal log entries are **always** logged to `stderr`, regardless of the setting
-of the `LOG_STDERR` environment variable.
+In addition to being written to the log file, fatal log entries are **always**
+copied to `stderr`, regardless of the setting of the `LOG_STDERR` environment
+variable.
 
 ```no-highlight
 # Turn off copying log messages to stderr.
