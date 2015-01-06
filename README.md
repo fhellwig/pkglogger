@@ -124,44 +124,51 @@ replaced by the values of any additional arguments using the
 [strformat](https://github.com/fhellwig/strformat) utility.
 
 - If the first argument is an object, then...
-    - If the object has a `message` property, then that message is logged.
-    - Otherwise, the object is converted to a string and that string becomes the error message.
+- If the object has a `message` property, then that message is logged.
+- Otherwise, the object is converted to a string and that string becomes the error message.
 - If the arguments following the `message` parameter are primitive values, then these values are accessed using numerical placeholders. For example, `{0}` is the first argument after the `message` parameter, `{1}` is the second argument after the `message` parameter, and so on.
 - If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
 - If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
 
-##Log File
+##Log Files
 
 The log file is created in the application's `logs` subdirectory. This is
 determined using the [pkgfinder](https://github.com/fhellwig/pkgfinder)
 utility. The log filename is the application's name followed by the ISO date
 according to the current UTC time. For example:
 
-```no-highlight
 server.2014-12-26.log 
-```
 
-The format of each log entry is `{timestamp} {level} [{pid}] {module}: {message}`.
+At most five log files are maintained. Log files older than five days are
+automatically removed. This is accomplished by reading the files in the `logs`
+subdirectory, sorting them, and removing all but the last five files.
 
-The full path of the `logs` directory can be obtained from the `pkglogger.directory` property.
-This is useful for informing the user that an error occurred and where to look for the log file.
-For example:
+The format of each log entry is
 
-```javascript
-performAction(function (err) {
-    if (err) {
-        log.fatal(err);
-	console.error("An error occurred. Please examine the latest log file in '" +
-	    pkglogger.directory + "' for details.");
-	process.exit(1);
-    }
-};
-```
+{timestamp} {level} [{pid}] {module}: {message}
 
-##Console Log
+where the `module` is the package name of the module specified in the call to
+the `pkglogger()` function along with the relative path of the module. 
+
+##Logging to the Console
 
 Log messages can also be copied to `stderr` by setting the `LOG_STDERR`
 environment variable to a value of 'on', 'yes', 'true', or '1'.
+
+###Fatal Log Entries
+
+Fatal log entries are **always** logged to `stderr`, regardless of the setting
+of the `LOG_STDERR` environment variable.
+
+```no-highlight
+# Turn off copying log messages to stderr.
+export LOG_STDERR=off
+```
+
+```javascript
+// The following is still logged to `stderr`.
+log.fatal('File system is full. Shutting down now.');
+```
 
 ## License
 

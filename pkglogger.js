@@ -23,11 +23,13 @@
 var os = require('os'),
     fs = require('fs'),
     path = require('path'),
+    async = require('async'),
     strformat = require('strformat'),
     pkgfinder = require('pkgfinder'),
     pkg = pkgfinder(),
     logDirectory = pkg.resolve('logs'),
-    logLevels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
+    MAX_LOG_FILES = 5,
+    LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
     LEVEL_ALL = 0,
     LEVEL_TRACE = 1,
     LEVEL_DEBUG = 2,
@@ -39,38 +41,42 @@ var os = require('os'),
 
 function pkglogger(module) {
     if (typeof module !== 'object') {
-        throw new Error ('The pkglogger function requires a module argument.');
+        throw new Error('The pkglogger function requires a module argument.');
     }
     if (typeof module.filename !== 'string') {
-        throw new Error ('The module object must have a filename string property.');
+        throw new Error('The module object must have a filename string property.');
     }
     var pkg = pkgfinder(module),
         path = pkg.relative(module.filename).replace('\\', '/'),
         name = strformat('{0}/{1}', pkg.name, path),
         level = process.env.LOG_LEVEL,
         level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
-        log = { _level: level },
-        fun = makeLogFunction(log, name);
-    log.trace = function () { fun(LEVEL_TRACE, arguments); };
-    log.debug = function () { fun(LEVEL_DEBUG, arguments); };
-    log.info =  function () { fun(LEVEL_INFO,  arguments); };
-    log.warn =  function () { fun(LEVEL_WARN,  arguments); };
-    log.error = function () { fun(LEVEL_ERROR, arguments); };
-    log.fatal = function () { fun(LEVEL_FATAL, arguments); };
-    log.setLevel = function (level) { log._level = parseLevel(level); };
-    log.getLevel = function () { return logLevels[log._level]; };
+        log = {
+            _level: level
+        };
+    log.trace = makeLogFunction(log, LEVEL_TRACE, name);
+    log.debug = makeLogFunction(log, LEVEL_DEBUG, name);
+    log.info = makeLogFunction(log, LEVEL_DEBUG, name);
+    log.warn = makeLogFunction(log, LEVEL_WARN, name);
+    log.error = makeLogFunction(log, LEVEL_ERROR, name);
+    log.fatal = makeLogFunction(log, LEVEL_FATAL, name);
+    log.setLevel = function (level) {
+        log._level = parseLevel(level);
+    };
+    log.getLevel = function () {
+        return LOG_LEVELS[log._level];
+    };
     return log;
 }
 
-pkglogger.ALL   = LEVEL_ALL;
+pkglogger.ALL = LEVEL_ALL;
 pkglogger.TRACE = LEVEL_TRACE;
 pkglogger.DEBUG = LEVEL_DEBUG;
-pkglogger.INFO  = LEVEL_INFO;
-pkglogger.WARN  = LEVEL_WARN;
+pkglogger.INFO = LEVEL_INFO;
+pkglogger.WARN = LEVEL_WARN;
 pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
-pkglogger.OFF   = LEVEL_OFF;
-pkglogger.directory = logDirectory;
+pkglogger.OFF = LEVEL_OFF;
 
 function isInteger(n) {
     return n === +n && n === (n | 0);
@@ -93,7 +99,7 @@ function parseLevel(level, source) {
     } else if (typeof level === 'string') {
         var tmp = parseFloat(level);
         if (isNaN(tmp)) {
-            index = logLevels.indexOf(level.toUpperCase());
+            index = LOG_LEVELS.indexOf(level.toUpperCase());
             if (index >= 0) {
                 retval = index;
             }
@@ -112,7 +118,51 @@ function parseLevel(level, source) {
     return retval;
 }
 
-function formatMessage(args) {
+function isOn(value) {
+    switch (value) {
+        case 'on':
+        case 'yes':
+        case 'true':
+        case '1':
+            return true;
+        default:
+            return false;
+    }
+}
+
+function makeLogFunction(log, level, name) {
+    var pid = process.pid,
+        severity = LOG_LEVELS[level];
+    return function () {
+        if (level >= log._level) {
+            ensureLogDirectory();
+            var msg = formatLogMessage(arguments),
+                now = new Date(),
+                ts = now.toISOString(),
+                dt = ts.substring(0, ts.indexOf('T')),
+                filename = strformat('{0}.{1}.log', pkg.name, dt),
+                entry = strformat('{0} {1} [{2}] {3}: {4}', ts, severity, pid, name, msg);
+            fs.appendFileSync(path.resolve(logDirectory, filename), entry);
+            if (level == LEVEL_FATAL || isOn(process.env.LOG_STDERR)) {
+                process.stderr.write(entry);
+            }
+            rollLogFiles();
+        }
+    }
+}
+
+function ensureLogDirectory() {
+    if (fs.existsSync(logDirectory)) {
+        var stats = fs.statSync(logDirectory);
+        if (!stats.isDirectory()) {
+            throw new Error(strformat("The file '{0}' is not a directory.", logDirectory));
+        }
+    } else {
+        fs.mkdirSync(logDirectory);
+    }
+}
+
+function formatLogMessage(args) {
     var msg,
         arg = args[0];
     if (typeof arg === 'string') {
@@ -125,45 +175,12 @@ function formatMessage(args) {
     return msg.replace(/\r?\n/g, os.EOL + '> ') + os.EOL;
 }
 
-function ensureLogDirectory() {
-    if (fs.existsSync(logDirectory)) {
-        var stats = fs.statSync(logDirectory);
-        if (!stats.isDirectory()) {
-            throw new Error(strformat("The file '{0}' is not a directory.", logDirectory));
-        } 
-    } else {
-        fs.mkdirSync(logDirectory);
-    }
-}
-
-function isOn(value) {
-    switch (value) {
-        case 'on':
-            case 'yes':
-            case 'true':
-            case '1':
-            return true;
-        default:
-            return false;
-    }
-}
-
-function makeLogFunction(log, name) {
-    return function (level, args) {
-        if (level >= log._level) {
-            ensureLogDirectory();
-            var pid = process.pid,
-                msg = formatMessage(args),
-                now = new Date(),
-                ts = now.toISOString(),
-                dt = ts.substring(0, ts.indexOf('T')),
-                level = logLevels[level],
-                filename = strformat('{0}.{1}.log', pkg.name, dt),
-                entry = strformat('{0} {1} [{2}] {3}: {4}', ts, level, pid, name, msg);
-            fs.appendFileSync(path.resolve(logDirectory, filename), entry);
-            if (isOn(process.env.LOG_STDERR)) {
-                process.stderr.write(entry);
-            }
+function rollLogFiles() {
+    files = fs.readdirSync(logDirectory);
+    if (files.length > MAX_LOG_FILES) {
+        files.sort();
+        for (var i = 0; i < files.length - MAX_LOG_FILES; i++) {
+            fs.unlinkSync(path.resolve(logDirectory, files[i]));
         }
     }
 }
