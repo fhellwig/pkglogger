@@ -166,7 +166,7 @@ export LOG_STDERR=off
 ```
 
 ```javascript
-// The following is still logged to `stderr`.
+// The following is still logged to stderr.
 log.fatal('File system is full. Shutting down now.');
 ```
 
