@@ -137,7 +137,7 @@ determined using the [pkgfinder](https://github.com/fhellwig/pkgfinder)
 utility. The log filename is the application's name followed by the ISO date
 according to the current UTC time. For example:
 
-server.2014-12-26.log 
+    server.2014-12-26.log 
 
 At most five log files are maintained. Log files older than five days are
 automatically removed. This is accomplished by reading the files in the `logs`
