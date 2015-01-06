@@ -109,7 +109,7 @@ determined and used in log messages.
 
 There are six log methods:
 
-```javascript
+```no-highlight
 log.trace(message [,args]);
 log.debug(message [,args]);
 log.info(message [,args]);
@@ -141,11 +141,11 @@ server.2014-12-26.log
 
 At most five log files are maintained. Log files older than five days are
 automatically removed. This is accomplished by reading the files in the `logs`
-subdirectory, sorting them, and removing all but the last five files.
+subdirectory, sorting them, and removing all but the last five log files.
 
 The format of each log entry is
 
-{timestamp} {level} [{pid}] {module}: {message}
+     {timestamp} {level} [{pid}] {module}: {message}
 
 where the `module` is the package name of the module specified in the call to
 the `pkglogger()` function along with the relative path of the module. 
