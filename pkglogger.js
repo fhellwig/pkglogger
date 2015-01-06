@@ -26,6 +26,7 @@ var os = require('os'),
     async = require('async'),
     strformat = require('strformat'),
     pkgfinder = require('pkgfinder'),
+    appName = pkgfinder().name,
     logDirectory = path.resolve(process.cwd(), 'logs'),
     MAX_LOG_FILES = 5,
     LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
@@ -139,7 +140,7 @@ function makeLogFunction(log, level, name) {
                 now = new Date(),
                 ts = now.toISOString(),
                 dt = ts.substring(0, ts.indexOf('T')),
-                filename = strformat('{0}.{1}.log', pkg.name, dt),
+                filename = strformat('{0}.{1}.log', appName, dt),
                 entry = strformat('{0} {1} [{2}] {3}: {4}', ts, severity, pid, name, msg);
             fs.appendFileSync(path.resolve(logDirectory, filename), entry);
             if (level == LEVEL_FATAL || isOn(process.env.LOG_STDERR)) {
