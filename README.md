@@ -1,6 +1,6 @@
 #pkglogger
 
-A simple logger that writes to a date-stamped log file in the application's `logs` subdirectory.
+A simple logger that writes to date-stamped log files.
 
 ##Quick Start
 
@@ -10,11 +10,15 @@ Install the `pkglogger` module.
 npm install pkglogger --save
 ```
 
+Require the `pkglogger` module
+
+```javascript
+var pkglogger = require('pkglogger');
+```
 Create a log object by calling the function exported by the `pkglogger` module and passing in your current module.
 
 ```javascript
-var pkglogger = require('pkglogger'),
-    log = pkglogger(module);
+var log = pkglogger(module);
 ```
 
 Call the methods on the log object.
@@ -42,8 +46,6 @@ changed by setting the log level using either the `log.setLevel()`
 function or by setting the `LOG_LEVEL` environment variable.
 
 ```javascript
-var pkglogger = require('pkglogger'),
-    log = pkglogger(module);
 log.setLevel(pkglogger.ALL);
 ```
 
@@ -132,10 +134,9 @@ replaced by the values of any additional arguments using the
 
 ##Log Files
 
-The log file is created in the application's `logs` subdirectory. This is
-determined using the [pkgfinder](https://github.com/fhellwig/pkgfinder)
-utility. The log filename is the application's name followed by the ISO date
-according to the current UTC time. For example:
+The log file is created in the current working directory's `logs` subdirectory.
+The log filename is the application's name followed by the ISO date according
+to the current UTC time. For example:
 
     server.2014-12-26.log 
 

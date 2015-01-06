@@ -1,6 +1,6 @@
 {
   "name": "pkglogger",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A node.js log utility that logs messages to log files.",
   "keywords": [
     "logging"
