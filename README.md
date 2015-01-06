@@ -19,7 +19,7 @@ var pkglogger = require('pkglogger'),
 
 Call the methods on the log object.
 
-```javascript
+```no-highlight
 log.trace('This is a trace message.');
 log.debug('This is a debug message.');
 log.info('This is an info message.');
