@@ -23,11 +23,10 @@
 var os = require('os'),
     fs = require('fs'),
     path = require('path'),
-    async = require('async'),
     strformat = require('strformat'),
     pkgfinder = require('pkgfinder'),
-    appName = pkgfinder().name,
-    logDirectory = path.resolve(process.cwd(), 'logs'),
+    app = pkgfinder(),
+    logDirectory = app.resolve('var', 'log'),
     MAX_LOG_FILES = 5,
     LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
     LEVEL_ALL = 0,
@@ -140,7 +139,7 @@ function makeLogFunction(log, level, name) {
                 now = new Date(),
                 ts = now.toISOString(),
                 dt = ts.substring(0, ts.indexOf('T')),
-                filename = strformat('{0}.{1}.log', appName, dt),
+                filename = strformat('{0}.{1}.log', app.name, dt),
                 entry = strformat('{0} {1} [{2}] {3}: {4}', ts, severity, pid, name, msg);
             fs.appendFileSync(path.resolve(logDirectory, filename), entry);
             if (level == LEVEL_FATAL || isOn(process.env.LOG_STDERR)) {
@@ -151,7 +150,24 @@ function makeLogFunction(log, level, name) {
     }
 }
 
+function trimdir(dir) {
+    var i = dir.lastIndexOf(path.sep);
+    if (i > 0) {
+        return dir.substring(0, i);
+    }
+    throw new Error("At the top of the file system.");
+}
+
+function mkdirp(dir) {
+    if (!fs.existsSync(dir)) {
+        mkdirp(trimdir(dir));
+        fs.mkdirSync(dir);
+    }
+}
+
 function ensureLogDirectory() {
+    mkdirp(logDirectory);
+    return;
     if (fs.existsSync(logDirectory)) {
         var stats = fs.statSync(logDirectory);
         if (!stats.isDirectory()) {
