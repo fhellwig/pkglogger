@@ -56,7 +56,7 @@ function pkglogger(module) {
         };
     log.trace = makeLogFunction(log, LEVEL_TRACE, name);
     log.debug = makeLogFunction(log, LEVEL_DEBUG, name);
-    log.info = makeLogFunction(log, LEVEL_DEBUG, name);
+    log.info = makeLogFunction(log, LEVEL_INFO, name);
     log.warn = makeLogFunction(log, LEVEL_WARN, name);
     log.error = makeLogFunction(log, LEVEL_ERROR, name);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name);
