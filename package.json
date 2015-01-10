@@ -18,6 +18,7 @@
   },
   "main": "./pkglogger.js",
   "dependencies": {
+    "mkdirs": "0.0.2",
     "pkgfinder": "1.2.x",
     "strformat": "0.0.x"
   }

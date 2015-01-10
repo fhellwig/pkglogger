@@ -15,7 +15,9 @@ Require the `pkglogger` module
 ```javascript
 var pkglogger = require('pkglogger');
 ```
-Create a log object by calling the function exported by the `pkglogger` module and passing in your current module.
+Create a log object by calling the function exported by the `pkglogger` module
+and passing in your current module. Passing in your current module is required
+since the log file includes the relative path of the logging module.
 
 ```javascript
 var log = pkglogger(module);
@@ -32,7 +34,8 @@ log.error('This is an error message.');
 log.fatal('This is a fatal message.');
 ```
 
-The log file in the `logs` directory will contain these messages:
+The log file in the `var/log` directory of your application (the directory
+containing your `package.json` file`) will contain these messages:
 
 ```no-highlight
 2014-12-26T13:02:52.667Z INFO test[2924] log-test.js: This is an info message.
@@ -86,6 +89,7 @@ log.setLevel(2);                // or the equivalent number
 log.setLevel('DEBUG');          // using a string
 log.setLevel('debug');          // case does not matter
 ```
+
 ```no-highlight
 export LOG_LEVEL=2
 export LOG_LEVEL=DEBUG
@@ -134,19 +138,19 @@ replaced by the values of any additional arguments using the
 
 ##Log Files
 
-The log file is created in the current working directory's `logs` subdirectory.
-The log filename is the application's name followed by the ISO date according
-to the current UTC time. For example:
+The log file is created in the application's `var/log` directory. The log
+filename is the application's name followed by the ISO date according to the
+current UTC time. For example:
 
-    server.2014-12-26.log 
+    var/log/server.2014-12-26.log 
 
 At most five log files are maintained. Log files older than five days are
-automatically removed. This is accomplished by reading the files in the `logs`
-subdirectory, sorting them, and removing all but the last five log files.
+automatically removed. The files in the `var/log` subdirectory are read,
+sorted, and then all but the last five log files are removed.
 
 The format of each log entry is
 
-     {timestamp} {level} [{pid}] {module}: {message}
+    {timestamp} {level} [{pid}] {module}: {message}
 
 where the `module` is the package name of the module specified in the call to
 the `pkglogger()` function along with the relative path of the module. 
@@ -176,7 +180,7 @@ log.fatal('File system is full. Shutting down now.');
 
 (The MIT License)
 
-Copyright (c) 2014 Frank Hellwig
+Copyright (c) 2015 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

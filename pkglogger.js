@@ -23,6 +23,7 @@
 var os = require('os'),
     fs = require('fs'),
     path = require('path'),
+    mkdirs = require('mkdirs'),
     strformat = require('strformat'),
     pkgfinder = require('pkgfinder'),
     app = pkgfinder(),
@@ -45,6 +46,7 @@ function pkglogger(module) {
     if (typeof module.filename !== 'string') {
         throw new Error('The module object must have a filename string property.');
     }
+    mkdirs(logDirectory);
     var pkg = pkgfinder(module),
         path = pkg.relative(module.filename).replace('\\', '/'),
         name = strformat('{0}/{1}', pkg.name, path),
@@ -134,7 +136,6 @@ function makeLogFunction(log, level, name) {
         severity = LOG_LEVELS[level];
     return function () {
         if (level >= log._level) {
-            ensureLogDirectory();
             var msg = formatLogMessage(arguments),
                 now = new Date(),
                 ts = now.toISOString(),
@@ -147,34 +148,6 @@ function makeLogFunction(log, level, name) {
             }
             rollLogFiles();
         }
-    }
-}
-
-function trimdir(dir) {
-    var i = dir.lastIndexOf(path.sep);
-    if (i > 0) {
-        return dir.substring(0, i);
-    }
-    throw new Error("At the top of the file system.");
-}
-
-function mkdirp(dir) {
-    if (!fs.existsSync(dir)) {
-        mkdirp(trimdir(dir));
-        fs.mkdirSync(dir);
-    }
-}
-
-function ensureLogDirectory() {
-    mkdirp(logDirectory);
-    return;
-    if (fs.existsSync(logDirectory)) {
-        var stats = fs.statSync(logDirectory);
-        if (!stats.isDirectory()) {
-            throw new Error(strformat("The file '{0}' is not a directory.", logDirectory));
-        }
-    } else {
-        fs.mkdirSync(logDirectory);
     }
 }
 
