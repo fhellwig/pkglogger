@@ -38,10 +38,10 @@ The log file in the `var/log` directory of your application (the directory
 containing your `package.json` file`) will contain these messages:
 
 ```no-highlight
-2014-12-26T13:02:52.667Z INFO test[2924] log-test.js: This is an info message.
-2014-12-26T13:02:52.667Z WARN test[2924] log-test.js: This is a warn message.
-2014-12-26T13:02:52.667Z ERROR test[2924] log-test.js: This is an error message.
-2014-12-26T13:02:52.667Z FATAL test[2924] log-test.js: This is a fatal message.
+2015-01-10T01:23:26.228Z INFO [96] pkglogger/test.js: This is an info message.
+2015-01-10T01:23:26.230Z WARN [96] pkglogger/test.js: This is a warn message.
+2015-01-10T01:23:26.230Z ERROR [96] pkglogger/test.js: This is an error message.
+2015-01-10T01:23:26.231Z FATAL [96] pkglogger/test.js: This is a fatal message.
 ```
 
 Notice that trace and debug messages are not loggged by default. This can be
@@ -55,12 +55,12 @@ log.setLevel(pkglogger.ALL);
 Now, all six levels are logged.
 
 ```no-highlight
-2014-12-26T13:02:52.664Z TRACE test[2924] log-test.js: This is a trace message.
-2014-12-26T13:02:52.666Z DEBUG test[2924] log-test.js: This is a debug message.
-2014-12-26T13:02:52.667Z INFO test[2924] log-test.js: This is an info message.
-2014-12-26T13:02:52.667Z WARN test[2924] log-test.js: This is a warn message.
-2014-12-26T13:02:52.667Z ERROR test[2924] log-test.js: This is an error message.
-2014-12-26T13:02:52.667Z FATAL test[2924] log-test.js: This is a fatal message.
+2015-01-10T01:23:26.199Z TRACE [96] pkglogger/test.js: This is a trace message.
+2015-01-10T01:23:26.226Z DEBUG [96] pkglogger/test.js: This is a debug message.
+2015-01-10T01:23:26.228Z INFO [96] pkglogger/test.js: This is an info message.
+2015-01-10T01:23:26.230Z WARN [96] pkglogger/test.js: This is a warn message.
+2015-01-10T01:23:26.230Z ERROR [96] pkglogger/test.js: This is an error message.
+2015-01-10T01:23:26.231Z FATAL [96] pkglogger/test.js: This is a fatal message.
 ```
 
 ##Log Levels
