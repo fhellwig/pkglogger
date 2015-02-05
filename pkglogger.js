@@ -48,7 +48,7 @@ function pkglogger(module) {
     }
     mkdirs(logDirectory);
     var pkg = pkgfinder(module),
-        path = pkg.relative(module.filename).replace('\\', '/'),
+        path = pkg.relative(module.filename).replace(/\\/g, '/'),
         name = strformat('{0}/{1}', pkg.name, path),
         level = process.env.LOG_LEVEL,
         level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
