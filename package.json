@@ -1,25 +1,23 @@
 {
-  "name": "pkglogger",
-  "version": "2.0.1",
-  "description": "A simple logger that writes to date-stamped log files.",
-  "keywords": [
-    "logging"
-  ],
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://www.opensource.org/licenses/MIT"
+    "name": "pkglogger",
+    "version": "2.1.0",
+    "description": "A simple logger that writes to date-stamped log files.",
+    "keywords": [
+        "logging"
+    ],
+    "licenses": [{
+        "type": "MIT",
+        "url": "http://www.opensource.org/licenses/MIT"
+    }],
+    "author": "Frank Hellwig <frank@hellwig.org>",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fhellwig/pkglogger.git"
+    },
+    "main": "./pkglogger.js",
+    "dependencies": {
+        "mkdirs": "0.0.2",
+        "pkgfinder": "1.2.x",
+        "strformat": "0.0.x"
     }
-  ],
-  "author": "Frank Hellwig <frank@hellwig.org>",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/fhellwig/pkglogger.git"
-  },
-  "main": "./pkglogger.js",
-  "dependencies": {
-    "mkdirs": "0.0.2",
-    "pkgfinder": "1.2.x",
-    "strformat": "0.0.x"
-  }
 }

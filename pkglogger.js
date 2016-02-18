@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Frank Hellwig
+ * Copyright (c) 2016 Frank Hellwig
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -27,7 +27,7 @@ var os = require('os'),
     strformat = require('strformat'),
     pkgfinder = require('pkgfinder'),
     app = pkgfinder(),
-    logDirectory = app.resolve('var', 'log'),
+    logDirectory = app.resolve('logs'),
     MAX_LOG_FILES = 5,
     LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
     LEVEL_ALL = 0,
@@ -61,10 +61,10 @@ function pkglogger(module) {
     log.warn = makeLogFunction(log, LEVEL_WARN, name);
     log.error = makeLogFunction(log, LEVEL_ERROR, name);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name);
-    log.setLevel = function (level) {
+    log.setLevel = function(level) {
         log._level = parseLevel(level);
     };
-    log.getLevel = function () {
+    log.getLevel = function() {
         return LOG_LEVELS[log._level];
     };
     return log;
@@ -134,7 +134,7 @@ function isOn(value) {
 function makeLogFunction(log, level, name) {
     var pid = process.pid,
         severity = LOG_LEVELS[level];
-    return function () {
+    return function() {
         if (level >= log._level) {
             var msg = formatLogMessage(arguments),
                 now = new Date(),

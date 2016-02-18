@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.1.0
+-----
+
+- Switched to using the `logs` directory for logging.
+
 2.0.1
 -----
 
