@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.2.0
+Version: 2.2.1
 
 ##Quick Start
 
@@ -43,7 +43,7 @@ The log file in the `logs` directory of your application (the directory containi
 2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
 ```
 
-Notice that trace and debug messages are not loggged by default. This can be changed by setting the log level using either the `log.level(value)` function or by setting the `LOG_LEVEL` environment variable.
+Notice that trace and debug messages are not loggged by default. This can be changed by setting the log level using either the `log.level(value)` function, the default `pkglogger.level(value)` function, or by setting the `LOG_LEVEL` environment variable.
 
 ```javascript
 log.level(log.ALL);
@@ -75,23 +75,35 @@ FATAL 6
 OFF   7
 ```
 
-You can set the log level by either calling the `log.level(value)` method or by setting the `LOG_LEVEL` environment variable. The following all set the log level to DEBUG:
+You can set the default log level by either calling the `pkglogger.level(value)` function or by setting the `LOG_LEVEL` environment variable.
+
+You can override the default log level by calling the `log.level(value)` function on each logger created by calling the `pkglogger(module)` function.
+
+The following all set the log level to DEBUG:
+
+```no-highlight
+# Default log level
+export LOG_LEVEL=2
+export LOG_LEVEL=DEBUG
+```
+
 
 ```javascript
+// Default log level
+pkglogger.level(pkglogger.DEBUG)
+```
+
+```javascript
+// The level for a specific log instance
 log.level(log.DEBUG);	// using the constant
 log.level(2);          	// or the equivalent number
 log.level('DEBUG');     // using a string
 log.level('debug');		// case does not matter
 ```
 
-```no-highlight
-export LOG_LEVEL=2
-export LOG_LEVEL=DEBUG
-```
-
 The default log level is INFO.
 
-The `log.level()` function is also a chainable getter function.
+Both the `pkglogger.level(value)` and `log.level(value)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
 
 ##Log Name
 
@@ -141,12 +153,18 @@ where the `name` is the package name of the module specified in the call to the 
 
 ##Logging to the Console
 
-Log messages can also be written to `stderr` by setting the `LOG_STDERR` environment variable. A case-independent value of 'on', 'yes', 'true', or '1' will log messages to `stderr`. This can also be enabled using the `log.stderr(flag)` function.
+Log messages can also be written to `stderr` by setting the the stderr flag.
 
-This can also be done using the `log.stderr(flag)` function:
+You can set the default value of the stderr flag by either calling the `pkglogger.stderr(flag)` function or by setting the `LOG_STDERR` environment variable. For the `LOG_STDERR` environment variable, a case-independent value of 'on', 'yes', 'true', or '1' will enable the stderr flag.
+
+You can override the default stderr flag by calling the `log.stderr(flag)` function on each logger created by calling the `pkglogger(module)` function.
 
 ```javascript
-log.stderr(true);
+// This enables the default stderr flag
+pkglogger.stderr(true);
+
+// This disables the stderr flag for a specific log instance
+log.stderr(false);
 ```
 
 The format for `stderr` log messages is a short form having the following format:
@@ -155,7 +173,7 @@ The format for `stderr` log messages is a short form having the following format
 
 The `time` is the time portion of the `timestamp` without the date.
 
-The `log.stderr()` function is also a chainable getter function.
+Both the `pkglogger.stderr(flag)` and `log.level(flag)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
 
 ###Fatal Log Entries
 

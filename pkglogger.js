@@ -20,15 +20,22 @@
  * IN THE SOFTWARE.
  */
 
+//------------------------------------------------------------------------------
+// Dependencies
+//------------------------------------------------------------------------------
+
 var os = require('os'),
     fs = require('fs'),
     path = require('path'),
     mkdirs = require('mkdirs'),
     strformat = require('strformat'),
-    pkgfinder = require('pkgfinder'),
-    app = pkgfinder(),
-    logDirectory = app.resolve('logs'),
-    MAX_LOG_FILES = 5,
+    pkgfinder = require('pkgfinder');
+
+//------------------------------------------------------------------------------
+// Constants
+//------------------------------------------------------------------------------
+
+var MAX_LOG_FILES = 5,
     LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
     LEVEL_ALL = 0,
     LEVEL_TRACE = 1,
@@ -39,7 +46,29 @@ var os = require('os'),
     LEVEL_FATAL = 6,
     LEVEL_OFF = 7,
     LOG_FORMAT = '{timestamp} {level} {name}[{pid}] {file}: {message}',
-    LOG_FORMAT_STDERR = '{timestamp} {level} {file}: {message}';
+    LOG_FORMAT_STDERR = '{time} {level} {file}: {message}';
+
+//------------------------------------------------------------------------------
+// Initialization
+//------------------------------------------------------------------------------
+
+var app = pkgfinder();
+
+var logDirectory = app.resolve('logs');
+
+var env = {
+    level: process.env.LOG_LEVEL,
+    stderr: process.env.LOG_STDERR
+};
+
+var defaults = {
+    level: env.level ? parseLevel(env.level, 'LOG_LEVEL') : LEVEL_INFO,
+    stderr: isOn(env.stderr)
+};
+
+//------------------------------------------------------------------------------
+// Public
+//------------------------------------------------------------------------------
 
 function pkglogger(module) {
     if (typeof module !== 'object') {
@@ -55,10 +84,7 @@ function pkglogger(module) {
         level = process.env.LOG_LEVEL,
         level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
         stderr = isOn(process.env.LOG_STDERR);
-    log = {
-        _level: level,
-        _stderr: stderr
-    };
+    log = {};
     log.trace = makeLogFunction(log, LEVEL_TRACE, name, file);
     log.debug = makeLogFunction(log, LEVEL_DEBUG, name, file);
     log.info = makeLogFunction(log, LEVEL_INFO, name, file);
@@ -66,12 +92,12 @@ function pkglogger(module) {
     log.error = makeLogFunction(log, LEVEL_ERROR, name, file);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name, file);
     log.level = function(value) {
-        if (arguments.length === 0) return LOG_LEVELS[log._level];
+        if (arguments.length === 0) return (typeof log._level === 'undefined') ? defaults.level : log._level;
         log._level = parseLevel(value);
         return log;
     };
     log.stderr = function(flag) {
-        if (arguments.length === 0) return log._stderr;
+        if (arguments.length === 0) return (typeof log._stderr === 'undefined') ? defaults.stderr : log._stderr;
         log._stderr = !!flag;
         return log;
     };
@@ -94,6 +120,22 @@ pkglogger.WARN = LEVEL_WARN;
 pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
 pkglogger.OFF = LEVEL_OFF;
+
+pkglogger.level = function(value) {
+    if (arguments.length === 0) return defaults.level;
+    defaults.level = parseLevel(value);
+    return pkglogger;
+};
+
+pkglogger.stderr = function(flag) {
+    if (arguments.length === 0) return defaults.stderr;
+    defaults.stderr = !!flag;
+    return pkglogger;
+};
+
+//------------------------------------------------------------------------------
+// Private
+//------------------------------------------------------------------------------
 
 function isInteger(n) {
     return n === +n && n === (n | 0);
@@ -150,7 +192,7 @@ function isOn(value) {
 
 function makeLogFunction(log, level, name, file) {
     return function() {
-        if (level < log._level) return false;
+        if (level < log.level()) return false;
         var record = {
             timestamp: new Date().toISOString(),
             level: LOG_LEVELS[level],
@@ -165,8 +207,8 @@ function makeLogFunction(log, level, name, file) {
             entry = strformat(LOG_FORMAT, record);
         fs.appendFileSync(path.resolve(logDirectory, filename), entry);
         rollLogFiles();
-        if (level == LEVEL_FATAL || log._stderr) {
-            record.timestamp = ts.substring(ts.indexOf('T') + 1);
+        if (level == LEVEL_FATAL || log.stderr()) {
+            record.time = ts.substring(ts.indexOf('T') + 1);
             process.stderr.write(strformat(LOG_FORMAT_STDERR, record));
         }
         return true;
@@ -195,5 +237,9 @@ function rollLogFiles() {
         }
     }
 }
+
+//------------------------------------------------------------------------------
+// Exports
+//------------------------------------------------------------------------------
 
 module.exports = pkglogger;

@@ -12,7 +12,7 @@ function logMessages() {
     log.error('This is error message {0}.', msg++);
     log.fatal('This is fatal message {0}.', msg++);
 }
-
+pkglogger.level(pkglogger.DEBUG).stderr(true);
 logMessages();
 log.level(log.TRACE);
 logMessages();

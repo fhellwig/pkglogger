@@ -1,6 +1,6 @@
 {
     "name": "pkglogger",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "description": "A simple logger that writes to date-stamped log files.",
     "keywords": [
         "logging"

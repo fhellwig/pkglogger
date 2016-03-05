@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.2.1
+-----
+
+- Added default `level` and `stderr` functions.
+
 2.2.0
 -----
 
