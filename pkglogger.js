@@ -38,8 +38,8 @@ var os = require('os'),
     LEVEL_ERROR = 5,
     LEVEL_FATAL = 6,
     LEVEL_OFF = 7,
-    LOG_FORMAT = '{timestamp} {severity} {name}[{pid}] {file}: {message}',
-    LOG_FORMAT_STDERR = '{timestamp} {severity} {file}: {message}';
+    LOG_FORMAT = '{timestamp} {level} {name}[{pid}] {file}: {message}',
+    LOG_FORMAT_STDERR = '{timestamp} {level} {file}: {message}';
 
 function pkglogger(module) {
     if (typeof module !== 'object') {
@@ -65,14 +65,15 @@ function pkglogger(module) {
     log.warn = makeLogFunction(log, LEVEL_WARN, name, file);
     log.error = makeLogFunction(log, LEVEL_ERROR, name, file);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name, file);
-    log.setLevel = function(level) {
-        log._level = parseLevel(level);
+    log.level = function(value) {
+        if (arguments.length === 0) return LOG_LEVELS[log._level];
+        log._level = parseLevel(value);
+        return log;
     };
-    log.getLevel = function() {
-        return LOG_LEVELS[log._level];
-    };
-    log.useStderr = function(flag) {
+    log.stderr = function(flag) {
+        if (arguments.length === 0) return log._stderr;
         log._stderr = !!flag;
+        return log;
     };
     log.ALL = LEVEL_ALL;
     log.TRACE = LEVEL_TRACE;
@@ -106,30 +107,30 @@ function isValidLevel(n) {
     return isInteger(n) && isInRange(n, LEVEL_ALL, LEVEL_OFF);
 }
 
-function parseLevel(level, source) {
+function parseLevel(value, source) {
     var retval = null;
-    if (typeof level === 'number') {
-        if (isValidLevel(level)) {
-            retval = level;
+    if (typeof value === 'number') {
+        if (isValidLevel(value)) {
+            retval = value;
         }
-    } else if (typeof level === 'string') {
-        var tmp = parseFloat(level);
-        if (isNaN(tmp)) {
-            index = LOG_LEVELS.indexOf(level.toUpperCase());
+    } else if (typeof value === 'string') {
+        var level = parseFloat(value);
+        if (isNaN(level)) {
+            index = LOG_LEVELS.indexOf(value.toUpperCase());
             if (index >= 0) {
                 retval = index;
             }
         } else {
-            if (isValidLevel(tmp)) {
-                retval = tmp;
+            if (isValidLevel(level)) {
+                retval = level;
             }
         }
     } else {
-        throw new Error(strformat("The log level must be a string or a number instead of {0}.", typeof level));
+        throw new Error(strformat("The log level must be a string or a number instead of {0}.", typeof value));
     }
     if (retval === null) {
         source = source || 'log level';
-        throw new Error(strformat("The {0} {1} is not valid.", source, level));
+        throw new Error(strformat("The {0} {1} is not valid.", source, value));
     }
     return retval;
 }
@@ -148,29 +149,27 @@ function isOn(value) {
 }
 
 function makeLogFunction(log, level, name, file) {
-    var pid = process.pid,
-        severity = LOG_LEVELS[level];
     return function() {
-        if (level >= log._level) {
-            var record = {
-                timestamp: new Date().toISOString(),
-                severity: severity,
-                name: name,
-                pid: pid,
-                file: file,
-                message: formatLogMessage(arguments)
-            };
-            var ts = record.timestamp,
-                date = ts.substring(0, ts.indexOf('T')),
-                filename = strformat('{0}.{1}.log', app.name, date),
-                entry = strformat(LOG_FORMAT, record);
-            fs.appendFileSync(path.resolve(logDirectory, filename), entry);
-            rollLogFiles();
-            if (level == LEVEL_FATAL || log._stderr) {
-                record.timestamp = ts.substring(ts.indexOf('T') + 1);
-                process.stderr.write(strformat(LOG_FORMAT_STDERR, record));
-            }
+        if (level < log._level) return false;
+        var record = {
+            timestamp: new Date().toISOString(),
+            level: LOG_LEVELS[level],
+            name: name,
+            pid: process.pid,
+            file: file,
+            message: formatLogMessage(arguments)
+        };
+        var ts = record.timestamp,
+            date = ts.substring(0, ts.indexOf('T')),
+            filename = strformat('{0}.{1}.log', app.name, date),
+            entry = strformat(LOG_FORMAT, record);
+        fs.appendFileSync(path.resolve(logDirectory, filename), entry);
+        rollLogFiles();
+        if (level == LEVEL_FATAL || log._stderr) {
+            record.timestamp = ts.substring(ts.indexOf('T') + 1);
+            process.stderr.write(strformat(LOG_FORMAT_STDERR, record));
         }
+        return true;
     }
 }
 

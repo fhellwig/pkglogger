@@ -5,8 +5,9 @@ pkglogger changes
 -----
 
 - Updated the README file to reflect the changes in version 2.1.0.
-- Added the `log.useStderr` function.
+- Added the `log.stderr` function.
 - Updated the format by separating the package name from the module file.
+- Changed the `setLevel` and `getLevel` functions to a single `level` function.
 
 2.1.0
 -----

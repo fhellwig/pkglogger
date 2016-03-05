@@ -17,9 +17,7 @@ Require the `pkglogger` module
 ```javascript
 var pkglogger = require('pkglogger');
 ```
-Create a log object by calling the function exported by the `pkglogger` module
-and passing in your current module. Passing in your current module is required
-since the log file includes the relative path of the logging module.
+Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. Passing in your current module is required since the log file includes the relative path of the logging module.
 
 ```javascript
 var log = pkglogger(module);
@@ -36,8 +34,7 @@ log.error('This is an error message.');
 log.fatal('This is a fatal message.');
 ```
 
-The log file in the `logs` directory of your application (the directory
-containing your `package.json` file) will contain these messages:
+The log file in the `logs` directory of your application (the directory containing your `package.json` file) will contain these messages:
 
 ```no-highlight
 2016-03-05T12:02:27.151Z INFO pkglogger[4624] pkglogger.test.js: This is an info message.
@@ -46,12 +43,10 @@ containing your `package.json` file) will contain these messages:
 2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
 ```
 
-Notice that trace and debug messages are not loggged by default. This can be
-changed by setting the log level using either the `log.setLevel()`
-function or by setting the `LOG_LEVEL` environment variable.
+Notice that trace and debug messages are not loggged by default. This can be changed by setting the log level using either the `log.level(value)` function or by setting the `LOG_LEVEL` environment variable.
 
 ```javascript
-log.setLevel(pkglogger.ALL);
+log.level(log.ALL);
 ```
 
 Now, all six levels are logged.
@@ -67,8 +62,7 @@ Now, all six levels are logged.
 
 ##Log Levels
 
-There are six log levels as well as the ALL and OFF values.
-Their numerical values are as follows:
+There are six log levels as well as the ALL and OFF values. Their numerical values are as follows:
 
 ```no-highlight
 ALL   0
@@ -81,15 +75,13 @@ FATAL 6
 OFF   7
 ```
 
-You can set the log level by either calling the `log.setLevel()` method or by
-setting the `LOG_LEVEL` environment variable. The following all set the log
-level to DEBUG:
+You can set the log level by either calling the `log.level(value)` method or by setting the `LOG_LEVEL` environment variable. The following all set the log level to DEBUG:
 
 ```javascript
-log.setLevel(pkglogger.DEBUG);  // using the constant
-log.setLevel(2);                // or the equivalent number
-log.setLevel('DEBUG');          // using a string
-log.setLevel('debug');          // case does not matter
+log.level(log.DEBUG);	// using the constant
+log.level(2);          	// or the equivalent number
+log.level('DEBUG');     // using a string
+log.level('debug');		// case does not matter
 ```
 
 ```no-highlight
@@ -99,19 +91,17 @@ export LOG_LEVEL=DEBUG
 
 The default log level is INFO.
 
+The `log.level()` function is also a chainable getter function.
+
 ##Log Name
 
-The log name is used in log entries so that the origin of the message can be
-determined. The log name is set when creating a log object. The required way
-of creating a log object is by passing the `module` value to the `pkglogger()`
-function.
+The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `module` value to the `pkglogger()` function.
 
 ```javascript
 var log = pkglogger(module);
 ```
 
-The relative path from the package directory to the module filename is
-determined and used in log messages.
+The relative path from the package directory to the module filename is determined and used as the `file` placeholder in log messages.
 
 ##Log Methods
 
@@ -126,10 +116,7 @@ log.warn(message [,args]);
 log.fatal(message [,args]);
 ```
 
-Each of these takes a message string (or an object, such as an Error) as the
-first parameter. The message can contain optional placeholders that are
-replaced by the values of any additional arguments using the
-[strformat](https://github.com/fhellwig/strformat) utility.
+Each of these takes a message string (or an object, such as an Error) as the first parameter. The message can contain optional placeholders that are replaced by the values of any additional arguments using the [strformat](https://github.com/fhellwig/strformat) utility.
 
 - If the first argument is an object, then...
 - If the object has a `message` property, then that message is logged.
@@ -140,45 +127,39 @@ replaced by the values of any additional arguments using the
 
 ##Log Files
 
-The log file is created in the application's `logs` directory. The log
-filename is the application's name followed by the ISO date according to the
-current UTC time. For example:
+The log file is created in the application's `logs` directory. The log filename is the application's name followed by the ISO date according to the current UTC time. For example:
 
     logs/server.2014-12-26.log 
 
-At most five log files are maintained. Log files older than five days are
-automatically removed. The files in the `logs` subdirectory are read,
-sorted, and then all but the last five log files are removed.
+At most five log files are maintained. Log files older than five days are automatically removed. The files in the `logs` subdirectory are read, sorted, and then all but the last five log files are removed.
 
 The format of each log entry is
 
-    {timestamp} {severity} {name}[{pid}] {file}: {message}
+    {timestamp} {level} {name}[{pid}] {file}: {message}
 
-where the `name` is the package name of the module specified in the call to
-the `pkglogger()` function and the `file` is the relative path of the module. 
+where the `name` is the package name of the module specified in the call to the `pkglogger()` function and the `file` is the relative path of the module. 
 
 ##Logging to the Console
 
-Log messages can also be written to `stderr` by setting the `LOG_STDERR`
-environment variable to a value of 'on', 'yes', 'true', or '1'.
+Log messages can also be written to `stderr` by setting the `LOG_STDERR` environment variable. A case-independent value of 'on', 'yes', 'true', or '1' will log messages to `stderr`. This can also be enabled using the `log.stderr(flag)` function.
 
-This can also be done using the `log.useStderr` function:
+This can also be done using the `log.stderr(flag)` function:
 
 ```javascript
-log.useStderr(true);
+log.stderr(true);
 ```
 
 The format for `stderr` log messages is a short form having the following format:
 
-    {time} {severity} {file}: {message}
+    {time} {level} {file}: {message}
 
 The `time` is the time portion of the `timestamp` without the date.
 
+The `log.stderr()` function is also a chainable getter function.
+
 ###Fatal Log Entries
 
-In addition to being written to the log file, fatal log entries are **always**
-copied to `stderr`, regardless of the setting of the `LOG_STDERR` environment
-variable.
+In addition to being written to the log file, fatal log entries are **always** copied to `stderr`, regardless of the setting of the `LOG_STDERR` environment variable.
 
 ```no-highlight
 # Turn off copying log messages to stderr.
