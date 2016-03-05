@@ -2,6 +2,8 @@
 
 A simple logger that writes to date-stamped log files.
 
+Version: 2.2.0
+
 ##Quick Start
 
 Install the `pkglogger` module.
@@ -34,14 +36,14 @@ log.error('This is an error message.');
 log.fatal('This is a fatal message.');
 ```
 
-The log file in the `var/log` directory of your application (the directory
-containing your `package.json` file`) will contain these messages:
+The log file in the `logs` directory of your application (the directory
+containing your `package.json` file) will contain these messages:
 
 ```no-highlight
-2015-01-10T01:23:26.228Z INFO [96] pkglogger/test.js: This is an info message.
-2015-01-10T01:23:26.230Z WARN [96] pkglogger/test.js: This is a warn message.
-2015-01-10T01:23:26.230Z ERROR [96] pkglogger/test.js: This is an error message.
-2015-01-10T01:23:26.231Z FATAL [96] pkglogger/test.js: This is a fatal message.
+2016-03-05T12:02:27.151Z INFO pkglogger[4624] pkglogger.test.js: This is an info message.
+2016-03-05T12:02:27.170Z WARN pkglogger[4624] pkglogger.test.js: This is a warn message.
+2016-03-05T12:02:27.173Z ERROR pkglogger[4624] pkglogger.test.js: This is an error message.
+2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
 ```
 
 Notice that trace and debug messages are not loggged by default. This can be
@@ -55,12 +57,12 @@ log.setLevel(pkglogger.ALL);
 Now, all six levels are logged.
 
 ```no-highlight
-2015-01-10T01:23:26.199Z TRACE [96] pkglogger/test.js: This is a trace message.
-2015-01-10T01:23:26.226Z DEBUG [96] pkglogger/test.js: This is a debug message.
-2015-01-10T01:23:26.228Z INFO [96] pkglogger/test.js: This is an info message.
-2015-01-10T01:23:26.230Z WARN [96] pkglogger/test.js: This is a warn message.
-2015-01-10T01:23:26.230Z ERROR [96] pkglogger/test.js: This is an error message.
-2015-01-10T01:23:26.231Z FATAL [96] pkglogger/test.js: This is a fatal message.
+2016-03-05T12:07:02.963Z TRACE pkglogger[4596] pkglogger.test.js: This is a trace message.
+2016-03-05T12:07:02.963Z DEBUG pkglogger[4596] pkglogger.test.js: This is a debug message.
+2016-03-05T12:07:02.963Z INFO pkglogger[4596] pkglogger.test.js: This is an info message.
+2016-03-05T12:07:02.979Z WARN pkglogger[4596] pkglogger.test.js: This is a warn message.
+2016-03-05T12:07:02.979Z ERROR pkglogger[4596] pkglogger.test.js: This is an error message.
+2016-03-05T12:07:02.979Z FATAL pkglogger[4596] pkglogger.test.js: This is a fatal message.
 ```
 
 ##Log Levels
@@ -138,27 +140,39 @@ replaced by the values of any additional arguments using the
 
 ##Log Files
 
-The log file is created in the application's `var/log` directory. The log
+The log file is created in the application's `logs` directory. The log
 filename is the application's name followed by the ISO date according to the
 current UTC time. For example:
 
-    var/log/server.2014-12-26.log 
+    logs/server.2014-12-26.log 
 
 At most five log files are maintained. Log files older than five days are
-automatically removed. The files in the `var/log` subdirectory are read,
+automatically removed. The files in the `logs` subdirectory are read,
 sorted, and then all but the last five log files are removed.
 
 The format of each log entry is
 
-    {timestamp} {level} [{pid}] {module}: {message}
+    {timestamp} {severity} {name}[{pid}] {file}: {message}
 
-where the `module` is the package name of the module specified in the call to
-the `pkglogger()` function along with the relative path of the module. 
+where the `name` is the package name of the module specified in the call to
+the `pkglogger()` function and the `file` is the relative path of the module. 
 
 ##Logging to the Console
 
-Log messages can also be copied to `stderr` by setting the `LOG_STDERR`
+Log messages can also be written to `stderr` by setting the `LOG_STDERR`
 environment variable to a value of 'on', 'yes', 'true', or '1'.
+
+This can also be done using the `log.useStderr` function:
+
+```javascript
+log.useStderr(true);
+```
+
+The format for `stderr` log messages is a short form having the following format:
+
+    {time} {severity} {file}: {message}
+
+The `time` is the time portion of the `timestamp` without the date.
 
 ###Fatal Log Entries
 
@@ -180,7 +194,7 @@ log.fatal('File system is full. Shutting down now.');
 
 (The MIT License)
 
-Copyright (c) 2015 Frank Hellwig
+Copyright (c) 2016 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

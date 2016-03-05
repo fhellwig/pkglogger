@@ -37,7 +37,9 @@ var os = require('os'),
     LEVEL_WARN = 4,
     LEVEL_ERROR = 5,
     LEVEL_FATAL = 6,
-    LEVEL_OFF = 7;
+    LEVEL_OFF = 7,
+    LOG_FORMAT = '{timestamp} {severity} {name}[{pid}] {file}: {message}',
+    LOG_FORMAT_STDERR = '{timestamp} {severity} {file}: {message}';
 
 function pkglogger(module) {
     if (typeof module !== 'object') {
@@ -48,25 +50,38 @@ function pkglogger(module) {
     }
     mkdirs(logDirectory);
     var pkg = pkgfinder(module),
-        path = pkg.relative(module.filename).replace(/\\/g, '/'),
-        name = strformat('{0}/{1}', pkg.name, path),
+        name = pkg.name,
+        file = pkg.relative(module.filename).replace(/\\/g, '/'),
         level = process.env.LOG_LEVEL,
         level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
-        log = {
-            _level: level
-        };
-    log.trace = makeLogFunction(log, LEVEL_TRACE, name);
-    log.debug = makeLogFunction(log, LEVEL_DEBUG, name);
-    log.info = makeLogFunction(log, LEVEL_INFO, name);
-    log.warn = makeLogFunction(log, LEVEL_WARN, name);
-    log.error = makeLogFunction(log, LEVEL_ERROR, name);
-    log.fatal = makeLogFunction(log, LEVEL_FATAL, name);
+        stderr = isOn(process.env.LOG_STDERR);
+    log = {
+        _level: level,
+        _stderr: stderr
+    };
+    log.trace = makeLogFunction(log, LEVEL_TRACE, name, file);
+    log.debug = makeLogFunction(log, LEVEL_DEBUG, name, file);
+    log.info = makeLogFunction(log, LEVEL_INFO, name, file);
+    log.warn = makeLogFunction(log, LEVEL_WARN, name, file);
+    log.error = makeLogFunction(log, LEVEL_ERROR, name, file);
+    log.fatal = makeLogFunction(log, LEVEL_FATAL, name, file);
     log.setLevel = function(level) {
         log._level = parseLevel(level);
     };
     log.getLevel = function() {
         return LOG_LEVELS[log._level];
     };
+    log.useStderr = function(flag) {
+        log._stderr = !!flag;
+    };
+    log.ALL = LEVEL_ALL;
+    log.TRACE = LEVEL_TRACE;
+    log.DEBUG = LEVEL_DEBUG;
+    log.INFO = LEVEL_INFO;
+    log.WARN = LEVEL_WARN;
+    log.ERROR = LEVEL_ERROR;
+    log.FATAL = LEVEL_FATAL;
+    log.OFF = LEVEL_OFF;
     return log;
 }
 
@@ -120,7 +135,8 @@ function parseLevel(level, source) {
 }
 
 function isOn(value) {
-    switch (value) {
+    if (typeof value !== 'string') return false;
+    switch (value.toLowerCase()) {
         case 'on':
         case 'yes':
         case 'true':
@@ -131,22 +147,29 @@ function isOn(value) {
     }
 }
 
-function makeLogFunction(log, level, name) {
+function makeLogFunction(log, level, name, file) {
     var pid = process.pid,
         severity = LOG_LEVELS[level];
     return function() {
         if (level >= log._level) {
-            var msg = formatLogMessage(arguments),
-                now = new Date(),
-                ts = now.toISOString(),
-                dt = ts.substring(0, ts.indexOf('T')),
-                filename = strformat('{0}.{1}.log', app.name, dt),
-                entry = strformat('{0} {1} [{2}] {3}: {4}', ts, severity, pid, name, msg);
+            var record = {
+                timestamp: new Date().toISOString(),
+                severity: severity,
+                name: name,
+                pid: pid,
+                file: file,
+                message: formatLogMessage(arguments)
+            };
+            var ts = record.timestamp,
+                date = ts.substring(0, ts.indexOf('T')),
+                filename = strformat('{0}.{1}.log', app.name, date),
+                entry = strformat(LOG_FORMAT, record);
             fs.appendFileSync(path.resolve(logDirectory, filename), entry);
-            if (level == LEVEL_FATAL || isOn(process.env.LOG_STDERR)) {
-                process.stderr.write(entry);
-            }
             rollLogFiles();
+            if (level == LEVEL_FATAL || log._stderr) {
+                record.timestamp = ts.substring(ts.indexOf('T') + 1);
+                process.stderr.write(strformat(LOG_FORMAT_STDERR, record));
+            }
         }
     }
 }

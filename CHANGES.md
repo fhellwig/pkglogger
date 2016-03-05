@@ -1,6 +1,13 @@
 pkglogger changes
 =================
 
+2.2.0
+-----
+
+- Updated the README file to reflect the changes in version 2.1.0.
+- Added the `log.useStderr` function.
+- Updated the format by separating the package name from the module file.
+
 2.1.0
 -----
 
