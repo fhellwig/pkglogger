@@ -173,7 +173,7 @@ The format for `stderr` log messages is a short form having the following format
 
 The `time` is the time portion of the `timestamp` without the date.
 
-Both the `pkglogger.stderr(flag)` and `log.level(flag)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
+Both the `pkglogger.stderr(flag)` and `log.stderr(flag)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
 
 ###Fatal Log Entries
 
