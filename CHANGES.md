@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.2.3
+-----
+
+- Fixed the index declaration in the `parseLevel` function.
+
 2.2.2
 -----
 

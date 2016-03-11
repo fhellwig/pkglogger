@@ -176,7 +176,7 @@ function parseLevel(value, source) {
     } else if (typeof value === 'string') {
         let level = parseFloat(value);
         if (isNaN(level)) {
-            index = LOG_LEVELS.indexOf(value.toUpperCase());
+            let index = LOG_LEVELS.indexOf(value.toUpperCase());
             if (index >= 0) {
                 retval = index;
             }
