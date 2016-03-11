@@ -20,49 +20,54 @@
  * IN THE SOFTWARE.
  */
 
+'use strict';
+
 //------------------------------------------------------------------------------
 // Dependencies
 //------------------------------------------------------------------------------
 
-var os = require('os'),
-    fs = require('fs'),
-    path = require('path'),
-    mkdirs = require('mkdirs'),
-    strformat = require('strformat'),
-    pkgfinder = require('pkgfinder');
+const os = require('os');
+const fs = require('fs');
+const path = require('path');
+const mkdirs = require('mkdirs');
+const strformat = require('strformat');
+const pkgfinder = require('pkgfinder');
 
 //------------------------------------------------------------------------------
 // Constants
 //------------------------------------------------------------------------------
 
-var MAX_LOG_FILES = 5,
-    LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'],
-    LEVEL_ALL = 0,
-    LEVEL_TRACE = 1,
-    LEVEL_DEBUG = 2,
-    LEVEL_INFO = 3,
-    LEVEL_WARN = 4,
-    LEVEL_ERROR = 5,
-    LEVEL_FATAL = 6,
-    LEVEL_OFF = 7,
-    LOG_FORMAT = '{timestamp} {level} {name}[{pid}] {file}: {message}',
-    LOG_FORMAT_STDERR = '{time} {level} {file}: {message}';
+const MAX_LOG_FILES = 5;
+const LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF'];
+const LEVEL_ALL = 0;
+const LEVEL_TRACE = 1;
+const LEVEL_DEBUG = 2;
+const LEVEL_INFO = 3;
+const LEVEL_WARN = 4;
+const LEVEL_ERROR = 5;
+const LEVEL_FATAL = 6;
+const LEVEL_OFF = 7;
+const LOG_FORMAT = '{timestamp} {level} {name}[{pid}] {file}: {message}';
 
 //------------------------------------------------------------------------------
 // Initialization
 //------------------------------------------------------------------------------
 
-var app = pkgfinder();
+let app = pkgfinder();
 
-var logDirectory = app.resolve('logs');
-
-var env = {
+let env = {
+    dir: process.env.LOG_DIR,
     level: process.env.LOG_LEVEL,
+    format: process.env.LOG_FORMAT,
     stderr: process.env.LOG_STDERR
 };
 
-var defaults = {
+let logDirectory = app.resolve(env.dir || 'logs');
+mkdirs(logDirectory);
+
+let defaults = {
     level: env.level ? parseLevel(env.level, 'LOG_LEVEL') : LEVEL_INFO,
+    format: env.format ? env.format : LOG_FORMAT,
     stderr: isOn(env.stderr)
 };
 
@@ -77,14 +82,10 @@ function pkglogger(module) {
     if (typeof module.filename !== 'string') {
         throw new Error('The module object must have a filename string property.');
     }
-    mkdirs(logDirectory);
-    var pkg = pkgfinder(module),
-        name = pkg.name,
-        file = pkg.relative(module.filename).replace(/\\/g, '/'),
-        level = process.env.LOG_LEVEL,
-        level = level ? parseLevel(level, 'LOG_LEVEL') : LEVEL_INFO,
-        stderr = isOn(process.env.LOG_STDERR);
-    log = {};
+    let pkg = pkgfinder(module);
+    let name = pkg.name;
+    let file = pkg.relative(module.filename).replace(/\\/g, '/');
+    let log = {};
     log.trace = makeLogFunction(log, LEVEL_TRACE, name, file);
     log.debug = makeLogFunction(log, LEVEL_DEBUG, name, file);
     log.info = makeLogFunction(log, LEVEL_INFO, name, file);
@@ -92,12 +93,23 @@ function pkglogger(module) {
     log.error = makeLogFunction(log, LEVEL_ERROR, name, file);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name, file);
     log.level = function(value) {
-        if (arguments.length === 0) return (typeof log._level === 'undefined') ? defaults.level : log._level;
+        if (arguments.length === 0) {
+            return (typeof log._level === 'undefined') ? defaults.level : log._level;
+        }
         log._level = parseLevel(value);
         return log;
     };
+    log.format = function(spec) {
+        if (arguments.length === 0) {
+            return (typeof log._format === 'undefined') ? defaults.format : log._format;
+        }
+        log._format = spec;
+        return log;
+    };
     log.stderr = function(flag) {
-        if (arguments.length === 0) return (typeof log._stderr === 'undefined') ? defaults.stderr : log._stderr;
+        if (arguments.length === 0) {
+            return (typeof log._stderr === 'undefined') ? defaults.stderr : log._stderr;
+        }
         log._stderr = !!flag;
         return log;
     };
@@ -127,6 +139,12 @@ pkglogger.level = function(value) {
     return pkglogger;
 };
 
+pkglogger.format = function(spec) {
+    if (arguments.length === 0) return defaults.format;
+    defaults.format = spec;
+    return pkglogger;
+};
+
 pkglogger.stderr = function(flag) {
     if (arguments.length === 0) return defaults.stderr;
     defaults.stderr = !!flag;
@@ -150,13 +168,13 @@ function isValidLevel(n) {
 }
 
 function parseLevel(value, source) {
-    var retval = null;
+    let retval = null;
     if (typeof value === 'number') {
         if (isValidLevel(value)) {
             retval = value;
         }
     } else if (typeof value === 'string') {
-        var level = parseFloat(value);
+        let level = parseFloat(value);
         if (isNaN(level)) {
             index = LOG_LEVELS.indexOf(value.toUpperCase());
             if (index >= 0) {
@@ -192,32 +210,33 @@ function isOn(value) {
 
 function makeLogFunction(log, level, name, file) {
     return function() {
-        if (level < log.level()) return false;
-        var record = {
+        if (level < log.level()) {
+            return false;
+        }
+        let record = {
             timestamp: new Date().toISOString(),
             level: LOG_LEVELS[level],
-            name: name,
             pid: process.pid,
+            name: name,
             file: file,
             message: formatLogMessage(arguments)
         };
-        var ts = record.timestamp,
-            date = ts.substring(0, ts.indexOf('T')),
-            filename = strformat('{0}.{1}.log', app.name, date),
-            entry = strformat(LOG_FORMAT, record);
+        let ts = record.timestamp;
+        let date = ts.substring(0, ts.indexOf('T'));
+        let filename = strformat('{0}.{1}.log', app.name, date);
+        let entry = strformat(log.format(), record) + os.EOL;
         fs.appendFileSync(path.resolve(logDirectory, filename), entry);
         rollLogFiles();
-        if (level == LEVEL_FATAL || log.stderr()) {
-            record.time = ts.substring(ts.indexOf('T') + 1);
-            process.stderr.write(strformat(LOG_FORMAT_STDERR, record));
+        if (log.stderr()) {
+            process.stderr.write(entry);
         }
         return true;
     }
 }
 
 function formatLogMessage(args) {
-    var msg,
-        arg = args[0];
+    let msg;
+    let arg = args[0];
     if (typeof arg === 'string') {
         msg = strformat.apply(null, args);
     } else if (typeof arg === 'object' && typeof arg.message === 'string') {
@@ -225,14 +244,18 @@ function formatLogMessage(args) {
     } else {
         msg = '' + arg;
     }
-    return msg.replace(/\r?\n/g, os.EOL + '> ') + os.EOL;
+    return msg.replace(/\r?\n/g, os.EOL + '> ');
+}
+
+function formatLogRecord(format, record) {
+    return strformat(log.format(), record) + os.EOL;
 }
 
 function rollLogFiles() {
-    files = fs.readdirSync(logDirectory);
+    let files = fs.readdirSync(logDirectory);
     if (files.length > MAX_LOG_FILES) {
         files.sort();
-        for (var i = 0; i < files.length - MAX_LOG_FILES; i++) {
+        for (let i = 0; i < files.length - MAX_LOG_FILES; i++) {
             fs.unlinkSync(path.resolve(logDirectory, files[i]));
         }
     }

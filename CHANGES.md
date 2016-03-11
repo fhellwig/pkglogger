@@ -1,6 +1,15 @@
 pkglogger changes
 =================
 
+2.2.2
+-----
+
+- Added 'use strict' to pkglogger.js.
+- Added the LOG_DIR and LOG_FORMAT environment variables.
+- Added the `format` getter and setter function.
+- Removed automatically logging fatal errors to stderr.
+- Removed the unique format for stderr.
+
 2.2.1
 -----
 

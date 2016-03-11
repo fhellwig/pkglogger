@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.2.1
+Version: 2.2.2
 
 ##Quick Start
 
@@ -17,6 +17,7 @@ Require the `pkglogger` module
 ```javascript
 var pkglogger = require('pkglogger');
 ```
+
 Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. Passing in your current module is required since the log file includes the relative path of the logging module.
 
 ```javascript
@@ -42,6 +43,8 @@ The log file in the `logs` directory of your application (the directory containi
 2016-03-05T12:02:27.173Z ERROR pkglogger[4624] pkglogger.test.js: This is an error message.
 2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
 ```
+
+The default `logs` directory can be overridden by the `LOG_DIR` environment variable. This can be a relative or an absolute path. Relative paths are resolved against the package directory, *not* the current directory. Also, there are no getter or setter functions for the log directory as this is evaluated (and created) at process start.
 
 Notice that trace and debug messages are not loggged by default. This can be changed by setting the log level using either the `log.level(value)` function, the default `pkglogger.level(value)` function, or by setting the `LOG_LEVEL` environment variable.
 
@@ -86,7 +89,6 @@ The following all set the log level to DEBUG:
 export LOG_LEVEL=2
 export LOG_LEVEL=DEBUG
 ```
-
 
 ```javascript
 // Default log level
@@ -167,27 +169,7 @@ pkglogger.stderr(true);
 log.stderr(false);
 ```
 
-The format for `stderr` log messages is a short form having the following format:
-
-    {time} {level} {file}: {message}
-
-The `time` is the time portion of the `timestamp` without the date.
-
 Both the `pkglogger.stderr(flag)` and `log.stderr(flag)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
-
-###Fatal Log Entries
-
-In addition to being written to the log file, fatal log entries are **always** copied to `stderr`, regardless of the setting of the `LOG_STDERR` environment variable.
-
-```no-highlight
-# Turn off copying log messages to stderr.
-export LOG_STDERR=off
-```
-
-```javascript
-// The following is still logged to stderr.
-log.fatal('File system is full. Shutting down now.');
-```
 
 ## License
 
