@@ -20,3 +20,14 @@ log.level(log.OFF).stderr(true);
 logMessages();
 log.level(log.WARN);
 logMessages();
+
+log.level(log.INFO);
+pkglogger.dir('logs_one');
+log.info('This is a log message in the logs_one directory.');
+log.dir('logs_two');
+log.info('This is a log message in the logs_two directory.');
+var other_log = pkglogger(module);
+other_log.info('This is another log message in the logs_one directory.');
+
+console.log(log.dir())
+console.log(other_log.dir())

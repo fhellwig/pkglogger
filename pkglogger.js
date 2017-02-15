@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Frank Hellwig
+ * Copyright (c) 2017 Frank Hellwig
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -62,10 +62,8 @@ let env = {
     stderr: process.env.LOG_STDERR
 };
 
-let logDirectory = app.resolve(env.dir || 'logs');
-mkdirs(logDirectory);
-
 let defaults = {
+    dir: app.resolve(env.dir ? env.dir : 'logs'),
     level: env.level ? parseLevel(env.level, 'LOG_LEVEL') : LEVEL_INFO,
     format: env.format ? env.format : LOG_FORMAT,
     stderr: isOn(env.stderr)
@@ -92,21 +90,28 @@ function pkglogger(module) {
     log.warn = makeLogFunction(log, LEVEL_WARN, name, file);
     log.error = makeLogFunction(log, LEVEL_ERROR, name, file);
     log.fatal = makeLogFunction(log, LEVEL_FATAL, name, file);
-    log.level = function(value) {
+    log.dir = function (dirname) {
+        if (arguments.length === 0) {
+            return (typeof log._dir === 'undefined') ? defaults.dir : log._dir;
+        }
+        log._dir = app.resolve(dirname);
+        return log;
+    };
+    log.level = function (value) {
         if (arguments.length === 0) {
             return (typeof log._level === 'undefined') ? defaults.level : log._level;
         }
         log._level = parseLevel(value);
         return log;
     };
-    log.format = function(spec) {
+    log.format = function (spec) {
         if (arguments.length === 0) {
             return (typeof log._format === 'undefined') ? defaults.format : log._format;
         }
         log._format = spec;
         return log;
     };
-    log.stderr = function(flag) {
+    log.stderr = function (flag) {
         if (arguments.length === 0) {
             return (typeof log._stderr === 'undefined') ? defaults.stderr : log._stderr;
         }
@@ -133,19 +138,25 @@ pkglogger.ERROR = LEVEL_ERROR;
 pkglogger.FATAL = LEVEL_FATAL;
 pkglogger.OFF = LEVEL_OFF;
 
-pkglogger.level = function(value) {
+pkglogger.dir = function (dirname) {
+    if (arguments.length === 0) return defaults.dir;
+    defaults.dir = app.resolve(dirname);
+    return pkglogger;
+};
+
+pkglogger.level = function (value) {
     if (arguments.length === 0) return defaults.level;
     defaults.level = parseLevel(value);
     return pkglogger;
 };
 
-pkglogger.format = function(spec) {
+pkglogger.format = function (spec) {
     if (arguments.length === 0) return defaults.format;
     defaults.format = spec;
     return pkglogger;
 };
 
-pkglogger.stderr = function(flag) {
+pkglogger.stderr = function (flag) {
     if (arguments.length === 0) return defaults.stderr;
     defaults.stderr = !!flag;
     return pkglogger;
@@ -209,7 +220,7 @@ function isOn(value) {
 }
 
 function makeLogFunction(log, level, name, file) {
-    return function() {
+    return function () {
         if (level < log.level()) {
             return false;
         }
@@ -225,8 +236,10 @@ function makeLogFunction(log, level, name, file) {
         let date = ts.substring(0, ts.indexOf('T'));
         let filename = strformat('{0}.{1}.log', app.name, date);
         let entry = strformat(log.format(), record) + os.EOL;
-        fs.appendFileSync(path.resolve(logDirectory, filename), entry);
-        rollLogFiles();
+        let dir = log.dir();
+        mkdirs(dir);
+        fs.appendFileSync(path.resolve(dir, filename), entry);
+        rollLogFiles(dir);
         if (log.stderr()) {
             process.stderr.write(entry);
         }
@@ -251,12 +264,12 @@ function formatLogRecord(format, record) {
     return strformat(log.format(), record) + os.EOL;
 }
 
-function rollLogFiles() {
-    let files = fs.readdirSync(logDirectory);
+function rollLogFiles(dir) {
+    let files = fs.readdirSync(dir);
     if (files.length > MAX_LOG_FILES) {
         files.sort();
         for (let i = 0; i < files.length - MAX_LOG_FILES; i++) {
-            fs.unlinkSync(path.resolve(logDirectory, files[i]));
+            fs.unlinkSync(path.resolve(dir, files[i]));
         }
     }
 }

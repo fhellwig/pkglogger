@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.2.4
+-----
+
+- Added the `dir` method.
+
 2.2.3
 -----
 

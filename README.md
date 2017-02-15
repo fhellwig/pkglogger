@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.2.3
+Version: 2.2.4
 
 ##Quick Start
 
@@ -44,7 +44,7 @@ The log file in the `logs` directory of your application (the directory containi
 2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
 ```
 
-The default `logs` directory can be overridden by the `LOG_DIR` environment variable. This can be a relative or an absolute path. Relative paths are resolved against the package directory, *not* the current directory. Also, there are no getter or setter functions for the log directory as this is evaluated (and created) at process start.
+The default `logs` directory can be overridden by the `LOG_DIR` environment variable or by using the setter methods described below. This can be a relative or an absolute path. Relative paths are resolved against the package directory, *not* the current directory.
 
 Notice that trace and debug messages are not loggged by default. This can be changed by setting the log level using either the `log.level(value)` function, the default `pkglogger.level(value)` function, or by setting the `LOG_LEVEL` environment variable.
 
@@ -105,8 +105,6 @@ log.level('debug');		// case does not matter
 
 The default log level is INFO.
 
-Both the `pkglogger.level(value)` and `log.level(value)` functions are also a chainable as setters and, when called without any arguments, are getter functions.
-
 ##Log Name
 
 The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `module` value to the `pkglogger()` function.
@@ -139,9 +137,43 @@ Each of these takes a message string (or an object, such as an Error) as the fir
 - If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
 - If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
 
+##API Summary
+
+There are methods available both at the module level and for each individual log instance. When called with an argument, each of these methods is chainable. The `pkglogger` methods return the `pkglogger` module ant the `log` methods return the `log` instance.
+
+###Default Settings
+
+There are four methods on the `pkglogger` module that set the default values.
+
+`pkglogger.dir([dirname])` Sets (or gets) the default log directory.
+
+`pkglogger.level([value])` Sets (or gets) the default log level.
+
+`pkglogger.format([spec])` Sets (or gets) the default format specification.
+
+`pkglogger.stderr([flag])` Sets (or gets) the default console logging flag.
+
+###Per-Instance Settings
+
+These four methods are also available on individual log instances.
+
+`log.dir([dirname])` Sets (or gets) the log directory.
+
+`log.level([value])` Sets (or gets) the log level.
+
+`log.format([spec])` Sets (or gets) the format specification.
+
+`log.stderr([flag])` Sets (or gets) the console logging flag.
+
 ##Log Files
 
-The log file is created in the application's `logs` directory. The log filename is the application's name followed by the ISO date according to the current UTC time. For example:
+The log file is created in the application's `logs` directory. 
+
+You can change the default log directory by either calling the `pkglogger.dir(dirname)` function or by setting the `LOG_DIR` environment variable.
+
+You can override the default log directory by calling the `log.dir(dirname)` function on each logger created by calling the `pkglogger(module)` function.
+
+The log filename is the application's name followed by the ISO date according to the current UTC time. For example:
 
     logs/server.2014-12-26.log 
 
@@ -152,6 +184,10 @@ The format of each log entry is
     {timestamp} {level} {name}[{pid}] {file}: {message}
 
 where the `name` is the package name of the module specified in the call to the `pkglogger()` function and the `file` is the relative path of the module. 
+
+You can change the default log format by either calling the `pkglogger.format(spec)` function or by setting the `LOG_FORMAT` environment variable.
+
+You can override the default log format by calling the `log.format(spec)` function on each logger created by calling the `pkglogger(module)` function.
 
 ##Logging to the Console
 
@@ -175,7 +211,7 @@ Both the `pkglogger.stderr(flag)` and `log.stderr(flag)` functions are also a ch
 
 (The MIT License)
 
-Copyright (c) 2016 Frank Hellwig
+Copyright (c) 2017 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
