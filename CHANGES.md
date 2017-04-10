@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.3.1
+-----
+
+- Remove from module cache if no parent module specified.
+
 2.3.0
 -----
 

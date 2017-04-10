@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.3.0
+Version: 2.3.1
 
 ## Quick Start
 
@@ -21,7 +21,7 @@ var pkglogger = require('pkglogger');
 Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. If you do not provide the module, `module.parent` is used as the module for which relative module paths are created.
 
 ```javascript
-var log = pkglogger([module]);
+var log = pkglogger([parent]);
 ```
 
 Call the methods on the log object.
@@ -80,7 +80,7 @@ OFF   7
 
 You can set the default log level by either calling the `pkglogger.level(value)` function or by setting the `LOG_LEVEL` environment variable.
 
-You can override the default log level by calling the `log.level(value)` function on each logger created by calling the `pkglogger(module)` function.
+You can override the default log level by calling the `log.level(value)` function on each logger created by calling the `pkglogger([parent])` function.
 
 The following all set the log level to DEBUG:
 
@@ -107,10 +107,10 @@ The default log level is INFO.
 
 ## Log Name
 
-The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `module` value to the `pkglogger()` function. If you do not pass in a module instace, `module.parent` is used as the module.
+The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `parent` value to the `pkglogger([parent])` function. If you do not pass in a parent module instace, `module.parent` is used as the parent module.
 
 ```javascript
-var log = pkglogger([module]);
+var log = pkglogger(module);
 ```
 
 The relative path from the package directory to the module filename is determined and used as the `file` placeholder in log messages.
@@ -139,7 +139,7 @@ Each of these takes a message string (or an object, such as an Error) as the fir
 
 ## API Summary
 
-There are methods available both at the module level and for each individual log instance. When called with an argument, each of these methods is chainable. The `pkglogger` methods return the `pkglogger` module ant the `log` methods return the `log` instance.
+There are methods available both at the module level and for each individual log instance. When called with an argument, each of these methods is chainable. The `pkglogger` methods return the `pkglogger` module and the `log` methods return the `log` instance.
 
 ### Default Settings
 
@@ -181,11 +181,11 @@ The format of each log entry is
 
     {timestamp} {level} {name}[{pid}] {file}: {message}
 
-where the `name` is the package name of the module specified in the call to the `pkglogger()` function and the `file` is the relative path of the module. 
+where the `name` is the package name of the parent module specified in the call to the `pkglogger()` function and the `file` is the relative path of the module. 
 
 You can change the default log format by either calling the `pkglogger.format(spec)` function or by setting the `LOG_FORMAT` environment variable.
 
-You can override the default log format by calling the `log.format(spec)` function on each logger created by calling the `pkglogger(module)` function.
+You can override the default log format by calling the `log.format(spec)` function on each logger created by calling the `pkglogger(parent)` function.
 
 ## Logging to the Console
 
@@ -193,7 +193,7 @@ Log messages can also be written to `stderr` by setting the the stderr flag.
 
 You can set the default value of the stderr flag by either calling the `pkglogger.stderr(flag)` function or by setting the `LOG_STDERR` environment variable. For the `LOG_STDERR` environment variable, a case-independent value of 'on', 'yes', 'true', or '1' will enable the stderr flag.
 
-You can override the default stderr flag by calling the `log.stderr(flag)` function on each logger created by calling the `pkglogger(module)` function.
+You can override the default stderr flag by calling the `log.stderr(flag)` function on each logger created by calling the `pkglogger(parent)` function.
 
 ```javascript
 // This enables the default stderr flag
