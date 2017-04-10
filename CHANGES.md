@@ -1,6 +1,13 @@
 pkglogger changes
 =================
 
+2.3.0
+-----
+
+- Made the `dir` method a `pkglogger` level function only.
+- Added the `files` method to the `pkglogger` object.
+- Changed the default number of files from five to ten.
+
 2.2.4
 -----
 

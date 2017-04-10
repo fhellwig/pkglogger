@@ -1,6 +1,6 @@
 var pkglogger = require('./pkglogger');
 
-var log = pkglogger(module);
+var log = pkglogger();
 
 var msg = 1;
 
@@ -24,10 +24,10 @@ logMessages();
 log.level(log.INFO);
 pkglogger.dir('logs_one');
 log.info('This is a log message in the logs_one directory.');
-log.dir('logs_two');
+pkglogger.dir('logs_two');
 log.info('This is a log message in the logs_two directory.');
-var other_log = pkglogger(module);
-other_log.info('This is another log message in the logs_one directory.');
 
-console.log(log.dir())
-console.log(other_log.dir())
+pkglogger.files(100)
+pkglogger.files(1000)
+pkglogger.files(2.5)
+console.log(pkglogger.dir())

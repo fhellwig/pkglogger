@@ -1,10 +1,10 @@
-#pkglogger
+# pkglogger
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.2.4
+Version: 2.3.0
 
-##Quick Start
+## Quick Start
 
 Install the `pkglogger` module.
 
@@ -18,10 +18,10 @@ Require the `pkglogger` module
 var pkglogger = require('pkglogger');
 ```
 
-Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. Passing in your current module is required since the log file includes the relative path of the logging module.
+Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. If you do not provide the module, `module.parent` is used as the module for which relative module paths are created.
 
 ```javascript
-var log = pkglogger(module);
+var log = pkglogger([module]);
 ```
 
 Call the methods on the log object.
@@ -38,10 +38,10 @@ log.fatal('This is a fatal message.');
 The log file in the `logs` directory of your application (the directory containing your `package.json` file) will contain these messages:
 
 ```no-highlight
-2016-03-05T12:02:27.151Z INFO pkglogger[4624] pkglogger.test.js: This is an info message.
-2016-03-05T12:02:27.170Z WARN pkglogger[4624] pkglogger.test.js: This is a warn message.
-2016-03-05T12:02:27.173Z ERROR pkglogger[4624] pkglogger.test.js: This is an error message.
-2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger.test.js: This is a fatal message.
+2016-03-05T12:02:27.151Z INFO pkglogger[4624] pkglogger-test.js: This is an info message.
+2016-03-05T12:02:27.170Z WARN pkglogger[4624] pkglogger-test.js: This is a warn message.
+2016-03-05T12:02:27.173Z ERROR pkglogger[4624] pkglogger-test.js: This is an error message.
+2016-03-05T12:02:27.173Z FATAL pkglogger[4624] pkglogger-test.js: This is a fatal message.
 ```
 
 The default `logs` directory can be overridden by the `LOG_DIR` environment variable or by using the setter methods described below. This can be a relative or an absolute path. Relative paths are resolved against the package directory, *not* the current directory.
@@ -55,15 +55,15 @@ log.level(log.ALL);
 Now, all six levels are logged.
 
 ```no-highlight
-2016-03-05T12:07:02.963Z TRACE pkglogger[4596] pkglogger.test.js: This is a trace message.
-2016-03-05T12:07:02.963Z DEBUG pkglogger[4596] pkglogger.test.js: This is a debug message.
-2016-03-05T12:07:02.963Z INFO pkglogger[4596] pkglogger.test.js: This is an info message.
-2016-03-05T12:07:02.979Z WARN pkglogger[4596] pkglogger.test.js: This is a warn message.
-2016-03-05T12:07:02.979Z ERROR pkglogger[4596] pkglogger.test.js: This is an error message.
-2016-03-05T12:07:02.979Z FATAL pkglogger[4596] pkglogger.test.js: This is a fatal message.
+2016-03-05T12:07:02.963Z TRACE pkglogger[4596] pkglogger-test.js: This is a trace message.
+2016-03-05T12:07:02.963Z DEBUG pkglogger[4596] pkglogger-test.js: This is a debug message.
+2016-03-05T12:07:02.963Z INFO pkglogger[4596] pkglogger-test.js: This is an info message.
+2016-03-05T12:07:02.979Z WARN pkglogger[4596] pkglogger-test.js: This is a warn message.
+2016-03-05T12:07:02.979Z ERROR pkglogger[4596] pkglogger-test.js: This is an error message.
+2016-03-05T12:07:02.979Z FATAL pkglogger[4596] pkglogger-test.js: This is a fatal message.
 ```
 
-##Log Levels
+## Log Levels
 
 There are six log levels as well as the ALL and OFF values. Their numerical values are as follows:
 
@@ -105,17 +105,17 @@ log.level('debug');		// case does not matter
 
 The default log level is INFO.
 
-##Log Name
+## Log Name
 
-The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `module` value to the `pkglogger()` function.
+The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `module` value to the `pkglogger()` function. If you do not pass in a module instace, `module.parent` is used as the module.
 
 ```javascript
-var log = pkglogger(module);
+var log = pkglogger([module]);
 ```
 
 The relative path from the package directory to the module filename is determined and used as the `file` placeholder in log messages.
 
-##Log Methods
+## Log Methods
 
 There are six log methods:
 
@@ -137,15 +137,13 @@ Each of these takes a message string (or an object, such as an Error) as the fir
 - If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
 - If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
 
-##API Summary
+## API Summary
 
 There are methods available both at the module level and for each individual log instance. When called with an argument, each of these methods is chainable. The `pkglogger` methods return the `pkglogger` module ant the `log` methods return the `log` instance.
 
-###Default Settings
+### Default Settings
 
-There are four methods on the `pkglogger` module that set the default values.
-
-`pkglogger.dir([dirname])` Sets (or gets) the default log directory.
+There are five methods on the `pkglogger` module that set the default values.
 
 `pkglogger.level([value])` Sets (or gets) the default log level.
 
@@ -153,11 +151,13 @@ There are four methods on the `pkglogger` module that set the default values.
 
 `pkglogger.stderr([flag])` Sets (or gets) the default console logging flag.
 
-###Per-Instance Settings
+`pkglogger.dir([name])` Sets (or gets) the default log directory.
 
-These four methods are also available on individual log instances.
+`pkglogger.files([value])` Sets (or gets) the default number of log files that are kept.
 
-`log.dir([dirname])` Sets (or gets) the log directory.
+### Per-Instance Settings
+
+The first three of these methods are also available on individual log instances and override the default values.
 
 `log.level([value])` Sets (or gets) the log level.
 
@@ -165,19 +165,17 @@ These four methods are also available on individual log instances.
 
 `log.stderr([flag])` Sets (or gets) the console logging flag.
 
-##Log Files
+## Log Files
 
 The log file is created in the application's `logs` directory. 
 
-You can change the default log directory by either calling the `pkglogger.dir(dirname)` function or by setting the `LOG_DIR` environment variable.
-
-You can override the default log directory by calling the `log.dir(dirname)` function on each logger created by calling the `pkglogger(module)` function.
+You can change the default log directory by calling the `pkglogger.dir(name)` function or by setting the `LOG_DIR` environment variable.
 
 The log filename is the application's name followed by the ISO date according to the current UTC time. For example:
 
     logs/server.2014-12-26.log 
 
-At most five log files are maintained. Log files older than five days are automatically removed. The files in the `logs` subdirectory are read, sorted, and then all but the last five log files are removed.
+At most ten log files are maintained. Log files older than ten days are automatically removed. The files in the `logs` subdirectory are read, sorted, and then all but the last ten log files are removed. This number can be changed by calling the `pkglogger.files(days)` function. The `days` parameter must be in the range of 1 to 1000.
 
 The format of each log entry is
 
@@ -189,7 +187,7 @@ You can change the default log format by either calling the `pkglogger.format(sp
 
 You can override the default log format by calling the `log.format(spec)` function on each logger created by calling the `pkglogger(module)` function.
 
-##Logging to the Console
+## Logging to the Console
 
 Log messages can also be written to `stderr` by setting the the stderr flag.
 
