@@ -5,10 +5,7 @@
     "keywords": [
         "logging"
     ],
-    "licenses": [{
-        "type": "MIT",
-        "url": "http://www.opensource.org/licenses/MIT"
-    }],
+    "license": "MIT",
     "author": "Frank Hellwig <frank@hellwig.org>",
     "repository": {
         "type": "git",
