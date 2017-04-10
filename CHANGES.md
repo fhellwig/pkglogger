@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+2.3.2
+-----
+
+- Revert back to requiring a parent module argument.
+
 2.3.1
 -----
 

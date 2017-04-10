@@ -75,10 +75,6 @@ let defaults = {
 //------------------------------------------------------------------------------
 
 function pkglogger(parent) {
-    if (typeof parent === 'undefined') {
-        parent = module.parent
-        delete require.cache[__filename]
-    }
     if (typeof parent !== 'object') {
         throw new Error('The pkglogger function requires a parent argument.')
     }

@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 2.3.1
+Version: 2.3.2
 
 ## Quick Start
 
@@ -18,10 +18,10 @@ Require the `pkglogger` module
 var pkglogger = require('pkglogger');
 ```
 
-Create a log object by calling the function exported by the `pkglogger` module and passing in your current module. If you do not provide the module, `module.parent` is used as the module for which relative module paths are created.
+Create a log object by calling the function exported by the `pkglogger` module and passing in your current module as the parent of the logger.
 
 ```javascript
-var log = pkglogger([parent]);
+var log = pkglogger(module);
 ```
 
 Call the methods on the log object.
@@ -80,7 +80,7 @@ OFF   7
 
 You can set the default log level by either calling the `pkglogger.level(value)` function or by setting the `LOG_LEVEL` environment variable.
 
-You can override the default log level by calling the `log.level(value)` function on each logger created by calling the `pkglogger([parent])` function.
+You can override the default log level by calling the `log.level(value)` function on each logger created by calling the `pkglogger(parent)` function.
 
 The following all set the log level to DEBUG:
 
@@ -107,7 +107,7 @@ The default log level is INFO.
 
 ## Log Name
 
-The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `parent` value to the `pkglogger([parent])` function. If you do not pass in a parent module instace, `module.parent` is used as the parent module.
+The log name is used in log entries so that the origin of the message can be determined. The log name is set when creating a log object. The required way of creating a log object is by passing the `parent` value to the `pkglogger(parent)` function.
 
 ```javascript
 var log = pkglogger(module);
