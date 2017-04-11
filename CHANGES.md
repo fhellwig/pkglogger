@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+3.0.0
+-----
+
+- Developed a new pkglogger framework.
+
 2.3.2
 -----
 
