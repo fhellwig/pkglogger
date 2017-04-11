@@ -65,8 +65,6 @@ Gets (or sets) the default log level. The `value` can be a string (either upper 
 'OFF'   7
 ```
 
-You can override the default log level on a per-logger basis by setting the log level on an individual logger.
-
 ```javascript
 const pkglogger = require('pkglogger')
 
@@ -75,17 +73,13 @@ log.trace('This will NOT be logged')
 
 pkglogger.level = 'TRACE'
 log.trace('This will now be logged')
-
-log.level = 'DEBUG' // overrides TRACE
-log.trace('This will NOT be logged')
 ```
 
 The `LOG_LEVEL` environment variable, if set, overrides the initial default `INFO` log level.
 
 ```no-highlight
-# Default log level
-export LOG_LEVEL=2
-export LOG_LEVEL=DEBUG
+$ export LOG_LEVEL=2
+$ export LOG_LEVEL=DEBUG
 ```
 
 These both set the initial default log level to DEBUG.
