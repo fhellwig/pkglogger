@@ -18,10 +18,10 @@ Require the `pkglogger` module
 var pkglogger = require('pkglogger');
 ```
 
-Create a log object by calling `pkglogger.createLog(<topic>)`. The `topic` parameter is a string that identifies the created log object. You can also pass in your module as the `topic` parameter. If this case, the topic is the relative filename of the module.
+Obtain a log object by calling `pkglogger.getLog(topic)`. The `topic` parameter is a string that identifies the log object. If a log object for the specified topic already exists, it will be returned.
 
 ```javascript
-var log = pkglogger.createLog('network');
+var log = pkglogger.getLog('network');
 ```
 
 Call the methods on the log object.
@@ -32,7 +32,7 @@ log.debug('This is a debug message.');
 log.info('This is an info message.');
 log.warn('This is a warn message.');
 log.error('This is an error message.');
-log.fatal('This is a fatal message.');
+log.critical('This is a critical message.');
 ```
 
 The log file in the `logs` directory of your application (the directory containing your `package.json` file) will contain these messages:
@@ -41,7 +41,7 @@ The log file in the `logs` directory of your application (the directory containi
 2016-03-05T12:02:27.151Z INFO pkglogger[4624] network: This is an info message.
 2016-03-05T12:02:27.170Z WARN pkglogger[4624] network: This is a warn message.
 2016-03-05T12:02:27.173Z ERROR pkglogger[4624] network: This is an error message.
-2016-03-05T12:02:27.173Z FATAL pkglogger[4624] network: This is a fatal message.
+2016-03-05T12:02:27.173Z CRITICAL pkglogger[4624] network: This is a critical message.
 ```
 
 The trace and debug messages are not logged because the default log level is set to INFO.
@@ -50,19 +50,21 @@ The trace and debug messages are not logged because the default log level is set
 
 The `pkglogger` instance has getters and setters that override various default parameters.
 
-### pkglogger.level [ = value ]
+**`pkglogger.level [ = value ]`**
 
-Gets (or sets) the default log level. The `value` can be a string (either upper or lower case) or a number (0 through 7). There are six log levels as well as the `'ALL'` and `'OFF'` levels. Their string names and numerical values are as follows:
+Gets (or sets) the default log level. The `value` can be a severity (a string - either upper or lower case) or a level (a number between 0 and 7). There are six log levels as well as the `'ALL'` and `'OFF'` levels. Their string severities and numeric levels are as follows:
 
 ```no-highlight
-'ALL'   0
-'TRACE' 1
-'DEBUG' 2
-'INFO'  3
-'WARN'  4
-'ERROR' 5
-'FATAL' 6
-'OFF'   7
+Severity   Level
+----------------
+'ALL'        0
+'TRACE'      1
+'DEBUG'      2
+'INFO'       3
+'WARN'       4
+'ERROR'      5
+'CRITICAL'   6
+'OFF'        7
 ```
 
 ```javascript
@@ -84,55 +86,61 @@ $ export LOG_LEVEL=DEBUG
 
 These both set the initial default log level to DEBUG.
 
-### pkglogger.format [ = value ]
+The log levels are also available as constants on the `pkglogger` object.
+
+```javascript
+pkglogger.level = pkglogger.DEBUG
+```
+
+**`pkglogger.severity]`**
+
+Gets the string severity of the current numeric log level.
+
+**`pkglogger.format [ = value ]`**
 
 Gets (or sets) the format for log messages. Each log event generates a log record consisting of the following properties:
 
 ```javascript
 {
-    timestamp: {string},
-    level: {
-        name: {string},
-        value: {number}
-    },
-    package: {
-        name: {string},
-        version: {string}
-    },
-    pid: {number},
-    topic: {string},
-    message: {string}
+    timestamp: {string}, // an ISO date/time string
+    level: {number},     // a number between 1 and 6
+    severity: {string},  // a string such as 'INFO'
+    package: {string},   // the package.json name
+    version: {string},   // the package.json version
+    pid: {number},       // the process.pid value
+    topic: {string},     // the log object topic
+    message: {string}    // the log message
 }
 ```
 
-The default format is `{timestamp} {level.name} {package.name}[{pid}] {topic}: {message}`.
+The default format is `{timestamp} {severity} {package}[{pid}] {topic}: {message}`.
 
-### pkglogger.filename [ = value ]
+**`pkglogger.filename [ = value ]`**
 
 Gets (or sets) the filename of the log. The default filename is the package name (the name of the package requiring `pkglogger`). The full name of each log file is `<filename>.<date>.log`. A new log file is created for each day at midnight UTC.
 
-### pkglogger.directory [ = value ]
+**`pkglogger.directory [ = value ]`**
 
-Gets (or sets) the log directory. The default log directory is the `logs` directory in the package directory (the package requiring `pkglogger`). The directory is created if it does not exist. When setting this value, the directory is resolved against the package requiring `pkglogger` unless the value is an absolute pathname.
+Gets (or sets) the log directory. The default log directory is the `logs` directory in the package directory (the directory of the package requiring `pkglogger`). The directory is created if it does not exist. When setting this value, the directory is resolved against the directory of the package requiring `pkglogger` unless the value is an absolute pathname.
 
-### pkglogger.files [ = value ]
+**`pkglogger.files [ = value ]`**
 
 Gets (or sets) the maximum number of files that are maintained in the log directory. The default value is ten (10).
 
-### pkglogger.subscribe(topic, callback)
+**`pkglogger.subscribe(topic, callback)`**
 
 Registers a callback function that is called whenever a log event on the specified topic is generated. The callback function is called as `callback(record)`. You can register for all topics by using a wildcard (`*`) as the topic parameter. The `subscribe` method returns a token that can be used to unsubscribe from the topic.
 
-### pkglogger.unsubscribe(token)
+**`pkglogger.unsubscribe(token)`**
 
 Unregisters the callback by using the token returned by the `subscribe` method.
 
-### log.trace(message)
-### log.debug(message)
-### log.info(message)
-### log.warn(message)
-### log.error(message)
-### log.fatal(message)
+**`log.trace(message)`**  
+**`log.debug(message)`**  
+**`log.info(message)`**  
+**`log.warn(message)`**  
+**`log.error(message)`**  
+**`log.critical(message)`**
 
 Each of these methods takes a message string (or an object, such as an Error) as the first parameter. The message can contain optional placeholders that are replaced by the values of any additional arguments using the [strformat](https://github.com/fhellwig/strformat) utility.
 
@@ -146,6 +154,8 @@ Each of these methods takes a message string (or an object, such as an Error) as
 ## Notes
 
 The log level only controls what messages are written to the log file. Subscribers are notified of *all* log events, regardless of the current log level.
+
+The removal of old log files is based on a the filename starting with the current `pkglogger.filename` (plus a period) and the `.log` extension. Other files not matching this pattern will not be removed.
 
 ## License
 
