@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 3.0.0
+Version: 3.0.1
 
 ## Quick Start
 
@@ -70,7 +70,7 @@ Severity   Level
 ```javascript
 const pkglogger = require('pkglogger')
 
-const log = pkglogger.createLog('network') // log level is INFO
+const log = pkglogger.getLog('network') // log level is INFO
 log.trace('This will NOT be logged')
 
 pkglogger.level = 'TRACE'

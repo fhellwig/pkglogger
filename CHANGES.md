@@ -1,6 +1,12 @@
 pkglogger changes
 =================
 
+3.0.1
+-----
+
+- Changed pubsub token to a non-integer string.
+- Added tests.
+
 3.0.0
 -----
 

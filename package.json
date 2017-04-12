@@ -1,6 +1,6 @@
 {
     "name": "pkglogger",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "description": "A simple logger that writes to date-stamped log files.",
     "keywords": [
         "logging"
@@ -12,6 +12,12 @@
         "url": "git://github.com/fhellwig/pkglogger.git"
     },
     "main": "./pkglogger.js",
+    "directories": {
+        "test": "mocha"
+    },
+    "scripts": {
+        "test": "mocha"
+    },
     "dependencies": {
         "mkdirs": "0.0.2",
         "pkgfinder": "1.2.x",

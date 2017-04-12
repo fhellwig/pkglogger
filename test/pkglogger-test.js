@@ -1,30 +1,75 @@
+'use strict'
+
+const os = require('os')
 const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
 const pkglogger = require('../pkglogger')
-const LogRecord = require('../lib/LogRecord')
-const pkg = require('pkgfinder')()
 
-pkglogger.directory = path.resolve(__dirname, 'logs')
 const log = pkglogger.getLog('test')
 
-const trace = new LogRecord(1, 'test', 'This is a test')
-trace.package = pkg.name
-trace.version = pkg.version
+pkglogger.directory = path.resolve(__dirname, 'logs')
+pkglogger.filename = 'test'
+pkglogger.format = '{timestamp}|{level}|{severity}|{package}|{version}|{pid}|{topic}|{message}'
 
 describe('pkglogger', function () {
     it('should publish a log record', function (done) {
-        let token
         function callback(record) {
-            trace.timestamp = record.timestamp
-            assert.deepStrictEqual(record, trace, 'Expected a trace record')
-            pkglogger.unsubscribe(token)
-            done()
+            let time = record.timestamp.indexOf('T')
+            let date = record.timestamp.substring(0, time)
+            let name = `${pkglogger.filename}.${date}.log`
+            let file = path.resolve(pkglogger.directory, name)
+            fs.readFile(file, 'utf-8', (err, data) => {
+                if (err) return done(err)
+                let lines = data.split(os.EOL)
+                let line = lines[lines.length - 2]
+                let fields = line.split('|')
+                let parsed = {
+                    timestamp: fields[0],
+                    level: fields[1],
+                    severity: fields[2],
+                    package: fields[3],
+                    version: fields[4],
+                    pid: fields[5],
+                    topic: fields[6],
+                    message: fields[7],
+                }
+                assert.deepEqual(record, parsed, 'Expected the records to match.')
+                done()
+            })
         }
-        token = pkglogger.subscribe('test', callback)
-        log.trace('This is a {0}', 'test')
+        let token = pkglogger.subscribe('test', callback)
+        log.info('This is a {0}', 'test')
+        pkglogger.unsubscribe(token)
+    })
+    it('should remove old log files', function (done) {
+        let now = 1
+        let token = pkglogger.subscribe('test', record => {
+            record.timestamp = new Date(now).toISOString()
+            pkglogger._writer.writeRecord(record)
+            now += 86401000
+        })
+        pkglogger.filename = 'rolling'
+        pkglogger.files = 5
+        for (let i = 0; i < 10; i++) {
+            log.info('This is rolling log test {0}', now)
+        }
+        pkglogger.unsubscribe(token)
+        fs.readdir(pkglogger.directory, (err, files) => {
+            if (err) return done(err)
+            const n = pkglogger.files
+            assert(files.length === n + 1, `Expected ${n} rolling files and one test file.`)
+            done()
+        })
     })
     after(function (done) {
-        done()
+        fs.readdir(pkglogger.directory, (err, files) => {
+            if (err) return done(err)
+            for (const file of files) {
+                fs.unlinkSync(path.resolve(pkglogger.directory, file))
+            }
+            fs.rmdirSync(pkglogger.directory)
+            done()
+        })
     })
 })
