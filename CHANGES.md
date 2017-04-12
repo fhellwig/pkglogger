@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+3.0.2
+-----
+
+- Added the ALL and OFF constants to LogProvider.
+
 3.0.1
 -----
 

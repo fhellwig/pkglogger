@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 3.0.1
+Version: 3.0.2
 
 ## Quick Start
 
