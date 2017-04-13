@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 3.0.2
+Version: 3.0.3
 
 ## Quick Start
 
@@ -127,9 +127,11 @@ Gets (or sets) the log directory. The default log directory is the `logs` direct
 
 Gets (or sets) the maximum number of files that are maintained in the log directory. The default value is ten (10).
 
-**`pkglogger.subscribe(topic, callback)`**
+**`pkglogger.subscribe(topic, [level,] callback)`**
 
 Registers a callback function that is called whenever a log event on the specified topic is generated. The callback function is called as `callback(record)`. You can register for all topics by using a wildcard (`*`) as the topic parameter. The `subscribe` method returns a token that can be used to unsubscribe from the topic.
+
+The `level` parameter overrides the `pkglogger.level` value and causes the callback function to be called whenever the log event level is greater than or equal to the specified `level`.
 
 **`pkglogger.unsubscribe(token)`**
 
@@ -153,9 +155,9 @@ Each of these methods takes a message string (or an object, such as an Error) as
 
 ## Notes
 
-The log level only controls what messages are written to the log file. Subscribers are notified of *all* log events, regardless of the current log level.
-
 The removal of old log files is based on a the filename starting with the current `pkglogger.filename` (plus a period) and the `.log` extension. Other files not matching this pattern will not be removed.
+
+This logging package is not designed to be particularly efficient. It checks for old log files on each log event making this not suitable for the logging of frequent events.
 
 ## License
 

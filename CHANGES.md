@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+3.0.3
+-----
+
+- Allow an optional level for each subcriber.
+
 3.0.2
 -----
 

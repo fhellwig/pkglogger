@@ -42,6 +42,27 @@ describe('pkglogger', function () {
         log.info('This is a {0}', 'test')
         pkglogger.unsubscribe(token)
     })
+    it('should respect the subscriber level', function (done) {
+        let err = null
+        function callback(record) {
+            err = new Error('Should not have been called.')
+        }
+        let token = pkglogger.subscribe('test', pkglogger.WARN, callback)
+        log.info('This is an info message.')
+        pkglogger.unsubscribe(token)
+        done(err)
+    })
+    it('should respect the default level', function (done) {
+        let err = null
+        function callback(record) {
+            err = new Error('Should not have been called.')
+        }
+        let token = pkglogger.subscribe('test', callback)
+        pkglogger.level = 'warn'
+        log.info('This is an info message.')
+        pkglogger.unsubscribe(token)
+        done(err)
+    })
     it('should remove old log files', function (done) {
         let now = 1
         let token = pkglogger.subscribe('test', record => {
@@ -51,6 +72,7 @@ describe('pkglogger', function () {
         })
         pkglogger.filename = 'rolling'
         pkglogger.files = 5
+        pkglogger.level = 'info'
         for (let i = 0; i < 10; i++) {
             log.info('This is rolling log test {0}', now)
         }
