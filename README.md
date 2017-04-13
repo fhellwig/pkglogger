@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 3.0.3
+Version: 3.0.4
 
 ## Quick Start
 
@@ -48,11 +48,13 @@ The trace and debug messages are not logged because the default log level is set
 
 ## API
 
+### Methods on the pkglogger instance
+
 The `pkglogger` instance has getters and setters that override various default parameters.
 
 **`pkglogger.level [ = value ]`**
 
-Gets (or sets) the default log level. The `value` can be a severity (a string - either upper or lower case) or a level (a number between 0 and 7). There are six log levels as well as the `'ALL'` and `'OFF'` levels. Their string severities and numeric levels are as follows:
+Gets (or sets) the default log level. The `value` can be a severity (an upper or lower case string) or a level (a number between 0 and 7). There are six log levels as well as the `'ALL'` and `'OFF'` levels. Their string severities and numeric levels are as follows:
 
 ```no-highlight
 Severity   Level
@@ -92,9 +94,9 @@ The log levels are also available as constants on the `pkglogger` object.
 pkglogger.level = pkglogger.DEBUG
 ```
 
-**`pkglogger.severity]`**
+**`pkglogger.severity`**
 
-Gets the string severity of the current numeric log level.
+Gets the severity string of the current numeric log level. For example, if the current level is 2, then this getter returns `'DEBUG'`.
 
 **`pkglogger.format [ = value ]`**
 
@@ -137,6 +139,8 @@ The `level` parameter overrides the `pkglogger.level` value and causes the callb
 
 Unregisters the callback by using the token returned by the `subscribe` method.
 
+### Methods on the individual log instances
+
 **`log.trace(message)`**  
 **`log.debug(message)`**  
 **`log.info(message)`**  
@@ -144,7 +148,7 @@ Unregisters the callback by using the token returned by the `subscribe` method.
 **`log.error(message)`**  
 **`log.critical(message)`**
 
-Each of these methods takes a message string (or an object, such as an Error) as the first parameter. The message can contain optional placeholders that are replaced by the values of any additional arguments using the [strformat](https://github.com/fhellwig/strformat) utility.
+Each of these methods takes a message string (or an object, such as an Error) as the first parameter. The message can contain optional placeholders that are replaced by the values of any additional arguments using the [strformat](https://www.npmjs.com/package/strformat) utility.
 
 - If the first argument is an object, then...
 - If the object has a `message` property, then that message is logged.
@@ -157,7 +161,7 @@ Each of these methods takes a message string (or an object, such as an Error) as
 
 The removal of old log files is based on a the filename starting with the current `pkglogger.filename` (plus a period) and the `.log` extension. Other files not matching this pattern will not be removed.
 
-This logging package is not designed to be particularly efficient. It checks for old log files on each log event making this not suitable for the logging of frequent events.
+This logging package is not designed to be particularly efficient. It checks for old log files on each log event making it not suitable for logging frequent events.
 
 ## License
 
