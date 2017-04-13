@@ -2,7 +2,7 @@
 
 A simple logger that writes to date-stamped log files.
 
-Version: 3.0.4
+Version: 3.0.5
 
 ## Quick Start
 
@@ -159,9 +159,9 @@ Each of these methods takes a message string (or an object, such as an Error) as
 
 ## Notes
 
-The removal of old log files is based on a the filename starting with the current `pkglogger.filename` (plus a period) and the `.log` extension. Other files not matching this pattern will not be removed.
+The removal of old log files is based on matching files in the log directory that start with the current `pkglogger.filename` (plus a period) and having the `.log` extension. Other files that do not match this pattern will not be removed.
 
-This logging package is not designed to be particularly efficient. It checks for old log files on each log event making it not suitable for logging frequent events.
+This logging package is not designed to be particularly efficient. It checks for old log files on each log event making it unsuitable for logging frequent events.
 
 ## License
 
