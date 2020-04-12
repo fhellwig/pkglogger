@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.0.0
+-----
+
+- Rewrote this package as a zero-configuration logger.
+
 3.0.5
 -----
 

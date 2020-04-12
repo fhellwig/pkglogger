@@ -1,8 +1,8 @@
 # pkglogger
 
-A simple logger that writes to date-stamped log files.
+A zero-configuration logger that writes to date-stamped log files.
 
-Version: 3.0.5
+Version: 4.0.0
 
 ## Quick Start
 
@@ -12,162 +12,89 @@ Install the `pkglogger` module.
 npm install pkglogger --save
 ```
 
-Require the `pkglogger` module
+Require the `pkglogger` module. This returns a `pkglogger()` function.
 
 ```javascript
-var pkglogger = require('pkglogger');
+const pkglogger = require('pkglogger');
 ```
 
-Obtain a log object by calling `pkglogger.getLog(topic)`. The `topic` parameter is a string that identifies the log object. If a log object for the specified topic already exists, it will be returned.
+Use the `pkglogger()` function to create a log for your module.
 
 ```javascript
-var log = pkglogger.getLog('network');
+const log = pkglogger('server');
+
+server
+  .start(port)
+  .then(() => {
+    log.info(`Listening on port ${port}.`);
+  })
+  .catch((err) => {
+    log.error(err);
+  });
 ```
 
-Call the methods on the log object.
-
-```no-highlight
-log.trace('This is a trace message.');
-log.debug('This is a debug message.');
-log.info('This is an info message.');
-log.warn('This is a warn message.');
-log.error('This is an error message.');
-log.critical('This is a critical message.');
-```
-
-The log file in the `logs` directory of your application (the directory containing your `package.json` file) will contain these messages:
-
-```no-highlight
-2016-03-05T12:02:27.151Z INFO pkglogger[4624] network: This is an info message.
-2016-03-05T12:02:27.170Z WARN pkglogger[4624] network: This is a warn message.
-2016-03-05T12:02:27.173Z ERROR pkglogger[4624] network: This is an error message.
-2016-03-05T12:02:27.173Z CRITICAL pkglogger[4624] network: This is a critical message.
-```
-
-The trace and debug messages are not logged because the default log level is set to INFO.
-
-## API
-
-### Methods on the pkglogger instance
-
-The `pkglogger` instance has getters and setters that override various default parameters.
-
-**`pkglogger.level [ = value ]`**
-
-Gets (or sets) the default log level. The `value` can be a severity (an upper or lower case string) or a level (a number between 0 and 7). There are six log levels as well as the `'ALL'` and `'OFF'` levels. Their string severities and numeric levels are as follows:
-
-```no-highlight
-Severity   Level
-----------------
-'ALL'        0
-'TRACE'      1
-'DEBUG'      2
-'INFO'       3
-'WARN'       4
-'ERROR'      5
-'CRITICAL'   6
-'OFF'        7
-```
+Instead of a string, you can also pass in your own `module` object and the topic is created from the basename of the module's `filename` property.
 
 ```javascript
-const pkglogger = require('pkglogger')
-
-const log = pkglogger.getLog('network') // log level is INFO
-log.trace('This will NOT be logged')
-
-pkglogger.level = 'TRACE'
-log.trace('This will now be logged')
+const log = pkglogger(module);
 ```
 
-The `LOG_LEVEL` environment variable, if set, overrides the initial default `INFO` log level.
+If no argument is provided, then the name of the package requiring the `pkglogger` module is used.
 
-```no-highlight
-$ export LOG_LEVEL=2
-$ export LOG_LEVEL=DEBUG
+## Available Log Methods
+
+There are five log methods. The message part of the log output is created by calling `msg.toString()` so error objects can be passed to each method as well as strings.
+
+```
+log.error(msg); // logs the message with severity 0 (ERROR)
+log.warn(msg);  // logs the message with severity 1 (WARN)
+log.info(msg);  // logs the message with severity 2 (INFO)
+log.debug(msg); // logs the message with severity 3 (DEBUG)
+log.trace(msg); // logs the message with severity 4 (TRACE)
 ```
 
-These both set the initial default log level to DEBUG.
+The format of each log message is fixed:
 
-The log levels are also available as constants on the `pkglogger` object.
+    <timestamp> [<severity>] <topic>: <message>
+
+When writing to the console, the timestamp is omitted from the output.
+
+## Log Files
+
+By default, log files are written to the `logs` directory of the package requireing the `pkglogger` module. The directory is created if it does not exist. The name of the each log file is the package name with the date and the `.log` extension. At most five log files are maintained.
+
+## Configuration
+
+This logger is designed to work without any additional configuration. The configuration of a log can be obtained from the `config` property.
 
 ```javascript
-pkglogger.level = pkglogger.DEBUG
-```
+console.dir(log.config);
 
-**`pkglogger.severity`**
-
-Gets the severity string of the current numeric log level. For example, if the current level is 2, then this getter returns `'DEBUG'`.
-
-**`pkglogger.format [ = value ]`**
-
-Gets (or sets) the format for log messages. Each log event generates a log record consisting of the following properties:
-
-```javascript
 {
-    timestamp: {string}, // an ISO date/time string
-    level: {number},     // a number between 1 and 6
-    severity: {string},  // a string such as 'INFO'
-    package: {string},   // the package.json name
-    version: {string},   // the package.json version
-    pid: {number},       // the process.pid value
-    topic: {string},     // the log object topic
-    message: {string}    // the log message
+  logTopic: {string},
+  logDir: {string},
+  logFile: {string},
+  logFiles: {number},
+  logLevel: {number},
+  logConsole: {boolean}
 }
 ```
 
-The default format is `{timestamp} {severity} {package}[{pid}] {topic}: {message}`.
+Log files are written to the `logs` directory of the package requiring the `pkglogger` module. This can be overridden by setting the `LOG_DIR` environemnt variable. The directory is created if it does not exist.
 
-**`pkglogger.filename [ = value ]`**
+The name of the each log file is created from the name of the package requiring the `pkglogger` module to which is appended the current date and the `.log` extension. This can be overridden by setting the `LOG_FILE` environment variable.
 
-Gets (or sets) the filename of the log. The default filename is the package name (the name of the package requiring `pkglogger`). The full name of each log file is `<filename>.<date>.log`. A new log file is created for each day at midnight UTC.
+At most five log files are maintained. This can be overridden by setting the `LOG_FILES` environment variable to an integer value.
 
-**`pkglogger.directory [ = value ]`**
+The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 4 (TRACE). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value.
 
-Gets (or sets) the log directory. The default log directory is the `logs` directory in the package directory (the directory of the package requiring `pkglogger`). The directory is created if it does not exist. When setting this value, the directory is resolved against the directory of the package requiring `pkglogger` unless the value is an absolute pathname.
-
-**`pkglogger.files [ = value ]`**
-
-Gets (or sets) the maximum number of files that are maintained in the log directory. The default value is ten (10).
-
-**`pkglogger.subscribe(topic, [level,] callback)`**
-
-Registers a callback function that is called whenever a log event on the specified topic is generated. The callback function is called as `callback(record)`. You can register for all topics by using a wildcard (`*`) as the topic parameter. The `subscribe` method returns a token that can be used to unsubscribe from the topic.
-
-The `level` parameter overrides the `pkglogger.level` value and causes the callback function to be called whenever the log event level is greater than or equal to the specified `level`.
-
-**`pkglogger.unsubscribe(token)`**
-
-Unregisters the callback by using the token returned by the `subscribe` method.
-
-### Methods on the individual log instances
-
-**`log.trace(message)`**  
-**`log.debug(message)`**  
-**`log.info(message)`**  
-**`log.warn(message)`**  
-**`log.error(message)`**  
-**`log.critical(message)`**
-
-Each of these methods takes a message string (or an object, such as an Error) as the first parameter. The message can contain optional placeholders that are replaced by the values of any additional arguments using the [strformat](https://www.npmjs.com/package/strformat) utility.
-
-- If the first argument is an object, then...
-- If the object has a `message` property, then that message is logged.
-- Otherwise, the object is converted to a string and that string becomes the error message.
-- If the arguments following the `message` parameter are primitive values, then these values are accessed using numerical placeholders. For example, `{0}` is the first argument after the `message` parameter, `{1}` is the second argument after the `message` parameter, and so on.
-- If the first argument following the `message` parameter is an array, then the numeric placeholders are array index values (e.g., `{0}`, `{1}`, etc.).
-- If the first argument after the `message` argument is an object, then the placeholders are the object property names (e.g., `{code}`).
-
-## Notes
-
-The removal of old log files is based on matching files in the log directory that start with the current `pkglogger.filename` (plus a period) and having the `.log` extension. Other files that do not match this pattern will not be removed.
-
-This logging package is not designed to be particularly efficient. It checks for old log files on each log event making it unsuitable for logging frequent events.
+Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridded by setting the `LOG_CONSOLE` environment variable to an integer value (0 for no and non-zero for yes).
 
 ## License
 
 (The MIT License)
 
-Copyright (c) 2017 Frank Hellwig
+Copyright (c) 2020 Frank Hellwig
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
