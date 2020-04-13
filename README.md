@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.0.0
+Version: 4.0.1
 
 ## Quick Start
 
@@ -59,10 +59,6 @@ The format of each log message is fixed:
 
 When writing to the console, the timestamp is omitted from the output.
 
-## Log Files
-
-By default, log files are written to the `logs` directory of the package requireing the `pkglogger` module. The directory is created if it does not exist. The name of the each log file is the package name with the date and the `.log` extension. At most five log files are maintained.
-
 ## Configuration
 
 This logger is designed to work without any additional configuration. The configuration of a log can be obtained from the `config` property.
@@ -80,15 +76,29 @@ console.dir(log.config);
 }
 ```
 
+### Log Directory
+
 Log files are written to the `logs` directory of the package requiring the `pkglogger` module. This can be overridden by setting the `LOG_DIR` environemnt variable. The directory is created if it does not exist.
+
+### Log File
 
 The name of the each log file is created from the name of the package requiring the `pkglogger` module to which is appended the current date and the `.log` extension. This can be overridden by setting the `LOG_FILE` environment variable.
 
-At most five log files are maintained. This can be overridden by setting the `LOG_FILES` environment variable to an integer value.
+### Number of Log Files
 
-The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 4 (TRACE). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value.
+At most five log files are maintained. This can be overridden by setting the `LOG_FILES` environment variable to an integer value. Setting `LOG_FILES` to a negative value disables file logging.
 
-Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridded by setting the `LOG_CONSOLE` environment variable to an integer value (0 for no and non-zero for yes).
+### Default Log Level
+
+The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 3 (DEBUG). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value (0 - 4).
+
+### Handling Trace Logs
+
+Calls with a severity of 4 (TRACE) are logged if the `LOG_LEVEL` environment variable is 4 or greater. However, there are times when you only want to trace events in specific modules. Setting the `LOG_TRACE` environment variable to a space-delimeted list of topics will result in a calls to `log.trace()` in those modules to be logged, *regardless* of the `LOG_LEVEL` setting.
+
+### Console Output
+
+Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridden by setting `LOG_CONSOLE=0`. Console output is styled using [chalk](https://www.npmjs.com/package/chalk). The color-coding of message can be disabled by setting `FORCE_COLOR=0`.
 
 ## License
 

@@ -1,6 +1,12 @@
 pkglogger changes
 =================
 
+4.0.1
+-----
+
+- The default log level for development is DEBUG instead of TRACE.
+- Added handling of the LOG_TRACE environment variable.
+
 4.0.0
 -----
 

@@ -29,6 +29,12 @@ const chalk = require('chalk');
 const mkdirs = require('mkdirs');
 const pkgfinder = require('pkgfinder');
 
+const ERROR = 0;
+const WARN = 1;
+const INFO = 2;
+const DEBUG = 3;
+const TRACE = 4;
+
 const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'];
 
 const env = process.env;
@@ -39,10 +45,18 @@ const config = {
   logDir: env.LOG_DIR || pkg.resolve('logs'),
   logFile: env.LOG_FILE || pkg.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
-  logLevel: parseInt(env.LOG_LEVEL) || (isProduction ? 2 : 4),
+  logLevel: parseInt(env.LOG_LEVEL) || (isProduction ? INFO : DEBUG),
+  logTrace: parseLogTrace(env.LOG_TRACE),
   logConsole: !!parseInt(env.LOG_CONSOLE) || !isProduction
 };
 
+function parseLogTrace(val) {
+  if (typeof val === 'string') {
+    return val.split(/\s+/).filter((v) => !!v);
+  } else {
+    return [];
+  }
+}
 function writeLogEntry(output) {
   const timestamp = new Date().toISOString();
   const date = timestamp.substring(0, timestamp.indexOf('T'));
@@ -75,19 +89,19 @@ function rollLogFiles() {
 
 function writeToConsole(sev, output) {
   switch (sev) {
-    case 0:
+    case ERROR:
       console.error(chalk.redBright(output));
       break;
-    case 1:
+    case WARN:
       console.error(chalk.magenta(output));
       break;
-    case 2:
+    case INFO:
       console.log(chalk.blue(output));
       break;
-    case 3:
+    case DEBUG:
       console.log(chalk.green(output));
       break;
-    case 4:
+    case TRACE:
       console.log(output);
       break;
   }
@@ -99,33 +113,33 @@ class Logger {
   }
 
   error(msg) {
-    this._log(0, msg);
+    if (config.logLevel < ERROR) return;
+    this._log(ERROR, msg);
   }
 
   warn(msg) {
-    this._log(1, msg);
+    if (config.logLevel < WARN) return;
+    this._log(WARN, msg);
   }
 
   info(msg) {
-    this._log(2, msg);
+    if (config.logLevel < INFO) return;
+    this._log(INFO, msg);
   }
 
   debug(msg) {
-    this._log(3, msg);
+    if (config.logLevel < DEBUG) return;
+    this._log(DEBUG, msg);
   }
 
   trace(msg) {
-    this._log(4, msg);
+    const traced = config.logTrace.includes(this._topic);
+    if (config.logLevel < TRACE && !traced) return;
+    this._log(TRACE, msg);
   }
 
   _log(sev, msg) {
-    if (sev > config.logLevel) {
-      return;
-    }
-    const level = LEVELS[sev];
-    //const message = typeof msg === 'string' ? msg : msg.message;
-    const message = msg.toString();
-    const output = `[${level}] ${this._topic}: ${message}`;
+    const output = `[${LEVELS[sev]}] ${this._topic}: ${msg.toString()}`;
     if (config.logFiles > 0) {
       writeLogEntry(output);
       rollLogFiles();
