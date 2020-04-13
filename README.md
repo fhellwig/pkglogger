@@ -72,6 +72,7 @@ console.dir(log.config);
   logFile: {string},
   logFiles: {number},
   logLevel: {number},
+  logTrace: [{string}],
   logConsole: {boolean}
 }
 ```
