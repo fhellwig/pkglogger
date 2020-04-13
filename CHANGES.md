@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.0.2
+-----
+
+- README fix.
+
 4.0.1
 -----
 

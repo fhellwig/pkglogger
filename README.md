@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.0.1
+Version: 4.0.2
 
 ## Quick Start
 
