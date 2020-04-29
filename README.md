@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.0.2
+Version: 4.1.0
 
 ## Quick Start
 
@@ -43,14 +43,13 @@ If no argument is provided, then the name of the package requiring the `pkglogge
 
 ## Available Log Methods
 
-There are five log methods. The message part of the log output is created by calling `msg.toString()` so error objects can be passed to each method as well as strings.
+There are four log methods. The message part of the log output is created by calling `msg.toString()` so error objects can be passed to each method as well as strings.
 
 ```
 log.error(msg); // logs the message with severity 0 (ERROR)
 log.warn(msg);  // logs the message with severity 1 (WARN)
 log.info(msg);  // logs the message with severity 2 (INFO)
 log.debug(msg); // logs the message with severity 3 (DEBUG)
-log.trace(msg); // logs the message with severity 4 (TRACE)
 ```
 
 The format of each log message is fixed:
@@ -72,7 +71,7 @@ console.dir(log.config);
   logFile: {string},
   logFiles: {number},
   logLevel: {number},
-  logTrace: [{string}],
+  logDebug: {string},
   logConsole: {boolean}
 }
 ```
@@ -83,7 +82,7 @@ Log files are written to the `logs` directory of the package requiring the `pkgl
 
 ### Log File
 
-The name of the each log file is created from the name of the package requiring the `pkglogger` module to which is appended the current date and the `.log` extension. This can be overridden by setting the `LOG_FILE` environment variable.
+The name of the each log file is created from the name of the package requiring the `pkglogger` module to which is appended the current date and the `.log` extension. This can be overridden by setting the `LOG_FILE` environment variable. The `log.latestLogFile` getter returns the path of the most-recent log file or `null` if no log files exist.
 
 ### Number of Log Files
 
@@ -91,11 +90,16 @@ At most five log files are maintained. This can be overridden by setting the `LO
 
 ### Default Log Level
 
-The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 3 (DEBUG). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value (0 - 4).
+The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 3 (DEBUG). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value (0 - 3).
 
-### Handling Trace Logs
+- Level 0: ERROR
+- Level 1: WARN
+- Level 2: INFO
+- Level 3: DEBUG
 
-Calls with a severity of 4 (TRACE) are logged if the `LOG_LEVEL` environment variable is 4 or greater. However, there are times when you only want to trace events in specific modules. Setting the `LOG_TRACE` environment variable to a space-delimeted list of topics will result in a calls to `log.trace()` in those modules to be logged, *regardless* of the `LOG_LEVEL` setting.
+### Debugging
+
+All calls to `log.debug()` are logged if the `LOG_LEVEL` environment variable is 3. This can be restricted to specific topics using the `LOG_DEBUG` (or `DEBUG`) envionment variable. This takes a list of topics delimited by commas or spaces. Wildcards and the hyphen prefix for negation are respected. The `logDebug` property in the `config` object shows the value of the `LOG_DEBUG` (or `DEBUG`) environment variable.
 
 ### Console Output
 

@@ -33,9 +33,8 @@ const ERROR = 0;
 const WARN = 1;
 const INFO = 2;
 const DEBUG = 3;
-const TRACE = 4;
 
-const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'];
+const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
 
 const env = process.env;
 const pkg = pkgfinder();
@@ -46,17 +45,10 @@ const config = {
   logFile: env.LOG_FILE || pkg.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
   logLevel: parseInt(env.LOG_LEVEL) || (isProduction ? INFO : DEBUG),
-  logTrace: parseLogTrace(env.LOG_TRACE),
+  logDebug: env.LOG_DEBUG || env.DEBUG,
   logConsole: !!parseInt(env.LOG_CONSOLE) || !isProduction
 };
 
-function parseLogTrace(val) {
-  if (typeof val === 'string') {
-    return val.split(/\s+/).filter((v) => !!v);
-  } else {
-    return [];
-  }
-}
 function writeLogEntry(output) {
   const timestamp = new Date().toISOString();
   const date = timestamp.substring(0, timestamp.indexOf('T'));
@@ -101,15 +93,37 @@ function writeToConsole(sev, output) {
     case DEBUG:
       console.log(chalk.green(output));
       break;
-    case TRACE:
-      console.log(output);
-      break;
   }
+}
+
+function getDebugFlag(topic) {
+  if (typeof config.logDebug === 'string') {
+    const log = [];
+    const not = [];
+    config.logDebug
+      .split(/[, ]+/)
+      .filter((p) => !!p)
+      .map((p) => p.replace(/\*/g, '.*'))
+      .forEach((p) => {
+        if (p.startsWith('-')) {
+          not.push(p.slice(1));
+        } else {
+          log.push(p);
+        }
+      });
+    const logRE = new RegExp(log.map((p) => `(^${p}$)`).join('|') || '.*');
+    const notRE = new RegExp(not.map((p) => `(^${p}$)`).join('|') || '(?!)');
+    return logRE.test(topic) && !notRE.test(topic);
+  }
+  return function () {
+    return true;
+  };
 }
 
 class Logger {
   constructor(topic) {
     this._topic = topic;
+    this._debug = getDebugFlag(topic);
   }
 
   error(msg) {
@@ -128,14 +142,8 @@ class Logger {
   }
 
   debug(msg) {
-    if (config.logLevel < DEBUG) return;
+    if (config.logLevel < DEBUG || !this._debug) return;
     this._log(DEBUG, msg);
-  }
-
-  trace(msg) {
-    const traced = config.logTrace.includes(this._topic);
-    if (config.logLevel < TRACE && !traced) return;
-    this._log(TRACE, msg);
   }
 
   _log(sev, msg) {
@@ -147,6 +155,15 @@ class Logger {
     if (config.logConsole) {
       writeToConsole(sev, output);
     }
+  }
+
+  get latestLogFile() {
+    const files = getLogFiles();
+    const length = files.length;
+    if (length === 0) {
+      return null;
+    }
+    return path.join(config.logDir, files[length - 1]);
   }
 
   get config() {
