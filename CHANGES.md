@@ -1,10 +1,10 @@
 pkglogger changes
 =================
 
-4.1.0
+4.1.1
 -----
 
-- Remove the TRACE log level as the same functionality can be achieved using the DEBUG level and the LOG_DEBUG (or DEBUG) envionment variable.
+- Removed the TRACE log level as the same functionality can be achieved using the DEBUG level and the LOG_DEBUG or DEBUG envionment variables.
 - Added the latestLogFile getter.
 
 4.0.2

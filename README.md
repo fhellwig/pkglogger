@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.1.0
+Version: 4.1.1
 
 ## Quick Start
 
@@ -90,7 +90,7 @@ At most five log files are maintained. This can be overridden by setting the `LO
 
 ### Default Log Level
 
-The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set to `'production'`. Otherwise, it is 3 (DEBUG). This can be overridden by setting the `LOG_LEVEL` environment variable to an integer value (0 - 3).
+The default log level is 2 (INFO). This can be overridden by setting the `LOG_LEVEL` environment variable to a number (0 - 3) or to a case-insensitive string corresponding to the log level.
 
 - Level 0: ERROR
 - Level 1: WARN
@@ -99,7 +99,11 @@ The default log level is 2 (INFO) if the `NODE_ENV` environment variable is set 
 
 ### Debugging
 
-All calls to `log.debug()` are logged if the `LOG_LEVEL` environment variable is 3. This can be restricted to specific topics using the `LOG_DEBUG` (or `DEBUG`) envionment variable. This takes a list of topics delimited by commas or spaces. Wildcards and the hyphen prefix for negation are respected. The `logDebug` property in the `config` object shows the value of the `LOG_DEBUG` (or `DEBUG`) environment variable.
+For calls to `log.debug()` to be logged, you must set the `LOG_LEVEL` environment variable to 3 or DEBUG. Once set, you can limit the modules for which debug logging is enabled by setting the `LOG_DEBUG` or `DEBUG` environment variables.
+
+Set the `LOG_DEBUG` or `DEBUG` environment variable to a list of topics, delimited by commas or spaces. This follows the convention of the [debug](https://www.npmjs.com/package/debug) package by allowing wildcards and omitting topics by prefixing the topic with a dash.
+
+Please note that the `LOG_DEBUG` environment variable, if set, takes precedence over the `DEBUG` environment variable. If neither one of these is set, then _all_ calls to `log.debug()` are logged.
 
 ### Console Output
 

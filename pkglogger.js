@@ -34,7 +34,12 @@ const WARN = 1;
 const INFO = 2;
 const DEBUG = 3;
 
+const DEFAULT_LEVEL = INFO;
+
 const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
+
+const TRUE = ['1', 'true', 'yes', 'on'];
+const FALSE = ['0', 'false', 'no', 'off'];
 
 const env = process.env;
 const pkg = pkgfinder();
@@ -44,10 +49,90 @@ const config = {
   logDir: env.LOG_DIR || pkg.resolve('logs'),
   logFile: env.LOG_FILE || pkg.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
-  logLevel: parseInt(env.LOG_LEVEL) || (isProduction ? INFO : DEBUG),
+  logLevel: getLogLevel(),
   logDebug: env.LOG_DEBUG || env.DEBUG,
-  logConsole: !!parseInt(env.LOG_CONSOLE) || !isProduction
+  logConsole: getBoolean('LOG_CONSOLE', !isProduction)
 };
+
+const setDebugFlag = makeSetDebugFlagFunction();
+
+function getLogLevel() {
+  const env = process.env.LOG_LEVEL;
+  // environment variable not set (undefined)
+  if (typeof env !== 'string') {
+    return DEFAULT_LEVEL;
+  }
+  const logLevel = env.trim().toUpperCase();
+  if (logLevel.length === 0) {
+    // logLevel is empty
+    return DEFAULT_LEVEL;
+  }
+  let number = parseInt(logLevel);
+  if (isNaN(number)) {
+    // not a number - parse as string
+    number = LEVELS.indexOf(logLevel);
+    if (number < 0) {
+      throw new RangeError(
+        `Expected one of ERROR, WARN, INFO, or DEBUG for the LOG_LEVEL environment variable. Got '${logLevel}' instead.`
+      );
+    }
+  } else {
+    // check for valid number
+    if (number < ERROR || number > DEBUG) {
+      throw new RangeError(
+        `Expected a number (0-3) for the LOG_LEVEL environment variable. Got ${number} instead.`
+      );
+    }
+  }
+  return number;
+}
+
+function getBoolean(name, defaultValue = false) {
+  const env = process.env[name];
+  if (typeof env !== 'string') {
+    return defaultValue;
+  }
+  const str = env.trim().toLowerCase();
+  if (str.length === 0) {
+    return defaultValue;
+  }
+  if (TRUE.indexOf(str) !== -1) {
+    return true;
+  }
+  if (FALSE.indexOf(str) !== -1) {
+    return false;
+  }
+  const truthy = TRUE.join('|');
+  const falsy = FALSE.join('|');
+  throw new RangeError(
+    `Expected (${truthy}) or (${falsy}) for the ${name} environment variable. Got '${env}' instead.`
+  );
+}
+
+function makeSetDebugFlagFunction(debug) {
+  if (config.logLevel === DEBUG) {
+    return () => true;
+  }
+  if (typeof config.logDebug !== 'string') {
+    return () => false;
+  }
+  const log = [];
+  const not = [];
+  config.logDebug
+    .split(/[, ]+/)
+    .filter((p) => !!p)
+    .map((p) => p.replace(/\*/g, '.*'))
+    .forEach((p) => {
+      if (p.startsWith('-')) {
+        not.push(p.slice(1));
+      } else {
+        log.push(p);
+      }
+    });
+  const logRE = new RegExp(`^(?:${log.join('|') || '.*'})$`);
+  const notRE = new RegExp(`^(?:${not.join('|') || '(?!)'})$`);
+  return (topic) => logRE.test(topic) && !notRE.test(topic);
+}
 
 function writeLogEntry(output) {
   const timestamp = new Date().toISOString();
@@ -96,34 +181,10 @@ function writeToConsole(sev, output) {
   }
 }
 
-function getDebugFlag(topic) {
-  if (typeof config.logDebug === 'string') {
-    const log = [];
-    const not = [];
-    config.logDebug
-      .split(/[, ]+/)
-      .filter((p) => !!p)
-      .map((p) => p.replace(/\*/g, '.*'))
-      .forEach((p) => {
-        if (p.startsWith('-')) {
-          not.push(p.slice(1));
-        } else {
-          log.push(p);
-        }
-      });
-    const logRE = new RegExp(log.map((p) => `(^${p}$)`).join('|') || '.*');
-    const notRE = new RegExp(not.map((p) => `(^${p}$)`).join('|') || '(?!)');
-    return logRE.test(topic) && !notRE.test(topic);
-  }
-  return function () {
-    return true;
-  };
-}
-
 class Logger {
   constructor(topic) {
     this._topic = topic;
-    this._debug = getDebugFlag(topic);
+    this._debug = setDebugFlag(topic);
   }
 
   error(msg) {
@@ -142,7 +203,7 @@ class Logger {
   }
 
   debug(msg) {
-    if (config.logLevel < DEBUG || !this._debug) return;
+    if (!this._debug) return;
     this._log(DEBUG, msg);
   }
 
