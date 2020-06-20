@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.1.4
+Version: 4.1.5
 
 ## Quick Start
 
@@ -33,13 +33,13 @@ server
   });
 ```
 
-Instead of a string, you can also pass in your own `module` object and the topic is created from the basename of the module's `filename` property.
+Instead of a string, you can also pass in your own `module` or `import.meta` object and the topic is created from the basename of the module's `filename` property or by parsing the `url` property of the `import.meta` object.
 
 ```javascript
 const log = pkglogger(module);
 ```
 
-If no argument is provided, then the name of the package requiring the `pkglogger` module is used.
+If no argument is provided, then the name of the closest `package.json` file is used.
 
 ## Available Log Methods
 

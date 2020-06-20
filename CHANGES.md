@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.1.5
+-----
+
+- Handle import.meta in addition to module.
+
 4.1.4
 -----
 

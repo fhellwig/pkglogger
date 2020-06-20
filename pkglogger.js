@@ -25,6 +25,7 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
+const url = require('url');
 const chalk = require('chalk');
 const mkdirs = require('mkdirs');
 const readPkgUp = require('read-pkg-up');
@@ -240,10 +241,18 @@ class Logger {
 }
 
 function pkglogger(topic) {
-  // Check for module.
+  // Check for module or import.meta.
   if (topic !== null && typeof topic === 'object') {
     if (typeof topic.filename === 'string') {
       return new Logger(path.basename(topic.filename, '.js'));
+    }
+    if (typeof topic.url === 'string') {
+      const filename = url.fileURLToPath(topic.url);
+      if (filename.endsWith('.mjs')) {
+        return new Logger(path.basename(filename, '.mjs'));
+      } else {
+        return new Logger(path.basename(filename, '.js'));
+      }
     }
   }
   // Check for string.
@@ -254,7 +263,7 @@ function pkglogger(topic) {
     }
   }
   // Return default.
-  return new Logger(pkg.name);
+  return new Logger(pkg.packageJson.name);
 }
 
 module.exports = pkglogger;
