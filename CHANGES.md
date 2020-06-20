@@ -1,10 +1,10 @@
 pkglogger changes
 =================
 
-4.1.3
+4.1.4
 -----
 
-- Changed the pkgfinder verision.
+- Changed from pkgfinder to read-pkg-up since pkgfinder uses require.main and that breaks when using ES6 modules.
 
 4.1.1
 -----

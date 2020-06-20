@@ -5,10 +5,8 @@ const pkglogger = require('./pkglogger');
 // LOG_LEVEL environment variable.
 
 const log = pkglogger(module);
-console.dir(log.config);
-console.log('---------------------------------------------');
-console.log(log.latestLogFile);
-console.log('---------------------------------------------');
+console.log('Log configuration:', log.config);
+console.log('Latest log file:', log.latestLogFile);
 log.error(new Error('This is an error.'));
 log.warn('This is a warning message.');
 log.info('This is an info message.');

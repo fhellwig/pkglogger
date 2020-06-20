@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.1.2
+Version: 4.1.4
 
 ## Quick Start
 
@@ -78,11 +78,11 @@ console.dir(log.config);
 
 ### Log Directory
 
-Log files are written to the `logs` directory of the package requiring the `pkglogger` module. This can be overridden by setting the `LOG_DIR` environemnt variable. The directory is created if it does not exist.
+Log files are written to the `logs` directory. This directory is created if it does not exist. The default location of the `logs` directory is in the directory of the closest `package.json` file (see [`read-pkg-up`](https://www.npmjs.com/package/read-pkg-up)). This can be overridden by setting the `LOG_DIR` environemnt variable. The directory is created if it does not exist.
 
 ### Log File
 
-The name of the each log file is created from the name of the package requiring the `pkglogger` module to which is appended the current date and the `.log` extension. This can be overridden by setting the `LOG_FILE` environment variable. The `log.latestLogFile` getter returns the path of the most-recent log file or `null` if no log files exist.
+The name of the each log file is created from the name of the closest `package.json` file (see [`read-pkg-up`](https://www.npmjs.com/package/read-pkg-up)). The current date and the `.log` extension are appended to the package name to create the filename. This can be overridden by setting the `LOG_FILE` environment variable. The `log.latestLogFile` getter returns the path of the most-recent log file or `null` if no log files exist.
 
 ### Number of Log Files
 

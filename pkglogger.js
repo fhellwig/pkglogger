@@ -27,7 +27,7 @@ const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
 const mkdirs = require('mkdirs');
-const pkgfinder = require('pkgfinder');
+const readPkgUp = require('read-pkg-up');
 
 const ERROR = 0;
 const WARN = 1;
@@ -41,17 +41,17 @@ const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
 const TRUE = ['1', 'true', 'yes', 'on'];
 const FALSE = ['0', 'false', 'no', 'off'];
 
+const pkg = readPkgUp.sync();
 const env = process.env;
-const pkg = pkgfinder();
 const isProduction = env.NODE_ENV === 'production';
 
 const config = {
-  logDir: env.LOG_DIR || pkg.resolve('logs'),
-  logFile: env.LOG_FILE || pkg.name,
+  logDir: env.LOG_DIR || path.join(path.dirname(pkg.path), 'logs'),
+  logFile: env.LOG_FILE || pkg.packageJson.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
   logLevel: getLogLevel(),
   logDebug: env.LOG_DEBUG || env.DEBUG,
-  logConsole: getBoolean('LOG_CONSOLE', !isProduction)
+  logConsole: getBoolean('LOG_CONSOLE', !isProduction),
 };
 
 const setDebugFlag = makeSetDebugFlagFunction();
@@ -144,15 +144,22 @@ function writeLogEntry(output) {
 }
 
 function getLogFiles() {
-  const retval = [];
-  const files = fs.readdirSync(config.logDir);
-  for (const file of files) {
-    if (file.startsWith(config.logFile + '.') && file.endsWith('.log')) {
-      retval.push(file);
+  try {
+    const files = fs.readdirSync(config.logDir);
+    const retval = [];
+    for (const file of files) {
+      if (file.startsWith(config.logFile + '.') && file.endsWith('.log')) {
+        retval.push(file);
+      }
     }
+    retval.sort();
+    return retval;
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return [];
+    }
+    throw err;
   }
-  retval.sort();
-  return retval;
 }
 
 function rollLogFiles() {
