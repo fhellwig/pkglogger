@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.1.2
+-----
+
+- Changed the pkgfinder verision.
+
 4.1.1
 -----
 
