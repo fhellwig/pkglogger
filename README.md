@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.1.5
+Version: 4.1.6
 
 ## Quick Start
 
@@ -12,10 +12,14 @@ Install the `pkglogger` module.
 npm install pkglogger --save
 ```
 
-Require the `pkglogger` module. This returns a `pkglogger()` function.
+Require or import the `pkglogger` module. This returns a `pkglogger()` function.
 
 ```javascript
 const pkglogger = require('pkglogger');
+```
+
+```javascript
+import pkglogger from 'pkglogger';
 ```
 
 Use the `pkglogger()` function to create a log for your module.

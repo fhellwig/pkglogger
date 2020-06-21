@@ -1,4 +1,4 @@
-const pkglogger = require('./pkglogger');
+const pkglogger = require('./pkglogger.cjs');
 
 // Try running this example with different environment variables.
 // In particular, try setting LOG_TRACE=example to override the

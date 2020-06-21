@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.1.6
+-----
+
+- Convert to dual CommonJS/ES Module package.
+
 4.1.5
 -----
 
