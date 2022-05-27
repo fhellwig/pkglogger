@@ -2,30 +2,26 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.1.6
+Version: 4.2.0
 
 ## Quick Start
 
 Install the `pkglogger` module.
 
 ```no-highlight
-npm install pkglogger --save
+npm install pkglogger
 ```
 
-Require or import the `pkglogger` module. This returns a `pkglogger()` function.
+Import the `createLog` function from the `pkglogger` module.
 
 ```javascript
-const pkglogger = require('pkglogger');
+import { createLog } from "pkglogger";
 ```
 
-```javascript
-import pkglogger from 'pkglogger';
-```
-
-Use the `pkglogger()` function to create a log for your module.
+Use the `createLog()` function to create a log for your module.
 
 ```javascript
-const log = pkglogger('server');
+const log = createLog("server");
 
 server
   .start(port)
@@ -40,7 +36,7 @@ server
 Instead of a string, you can also pass in your own `module` or `import.meta` object and the topic is created from the basename of the module's `filename` property or by parsing the `url` property of the `import.meta` object.
 
 ```javascript
-const log = pkglogger(module);
+const log = createLog(import.meta);
 ```
 
 If no argument is provided, then the name of the closest `package.json` file is used.
@@ -111,7 +107,7 @@ Please note that the `LOG_DEBUG` environment variable, if set, takes precedence 
 
 ### Console Output
 
-Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridden by setting `LOG_CONSOLE=0`. Console output is styled using [chalk](https://www.npmjs.com/package/chalk). The color-coding of message can be disabled by setting `FORCE_COLOR=0`.
+Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridden by setting `LOG_CONSOLE=false`. Console output is styled using [chalk](https://www.npmjs.com/package/chalk). The color-coding of message can be disabled by setting `FORCE_COLOR=0`.
 
 ## License
 

@@ -20,15 +20,13 @@
  * IN THE SOFTWARE.
  */
 
-'use strict';
-
-const os = require('os');
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
-const chalk = require('chalk');
-const mkdirs = require('mkdirs');
-const readPkgUp = require('read-pkg-up');
+import chalk from "chalk";
+import { appendFileSync, readdirSync } from "fs";
+import mkdirs from "mkdirs";
+import { EOL } from "os";
+import { basename, dirname, join, resolve } from "path";
+import { readPackageUpSync } from "read-pkg-up";
+import { fileURLToPath } from "url";
 
 const ERROR = 0;
 const WARN = 1;
@@ -37,22 +35,22 @@ const DEBUG = 3;
 
 const DEFAULT_LEVEL = INFO;
 
-const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
+const LEVELS = ["ERROR", "WARN", "INFO", "DEBUG"];
 
-const TRUE = ['1', 'true', 'yes', 'on'];
-const FALSE = ['0', 'false', 'no', 'off'];
+const TRUE = ["1", "true", "yes", "on"];
+const FALSE = ["0", "false", "no", "off"];
 
-const pkg = readPkgUp.sync();
+const pkg = readPackageUpSync();
 const env = process.env;
-const isProduction = env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === "production";
 
 const config = {
-  logDir: env.LOG_DIR || path.join(path.dirname(pkg.path), 'logs'),
+  logDir: env.LOG_DIR || join(dirname(pkg.path), "logs"),
   logFile: env.LOG_FILE || pkg.packageJson.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
   logLevel: getLogLevel(),
   logDebug: env.LOG_DEBUG || env.DEBUG,
-  logConsole: getBoolean('LOG_CONSOLE', !isProduction),
+  logConsole: getBoolean("LOG_CONSOLE", !isProduction),
 };
 
 const setDebugFlag = makeSetDebugFlagFunction();
@@ -60,7 +58,7 @@ const setDebugFlag = makeSetDebugFlagFunction();
 function getLogLevel() {
   const env = process.env.LOG_LEVEL;
   // environment variable not set (undefined)
-  if (typeof env !== 'string') {
+  if (typeof env !== "string") {
     return DEFAULT_LEVEL;
   }
   const logLevel = env.trim().toUpperCase();
@@ -90,7 +88,7 @@ function getLogLevel() {
 
 function getBoolean(name, defaultValue = false) {
   const env = process.env[name];
-  if (typeof env !== 'string') {
+  if (typeof env !== "string") {
     return defaultValue;
   }
   const str = env.trim().toLowerCase();
@@ -103,8 +101,8 @@ function getBoolean(name, defaultValue = false) {
   if (FALSE.indexOf(str) !== -1) {
     return false;
   }
-  const truthy = TRUE.join('|');
-  const falsy = FALSE.join('|');
+  const truthy = TRUE.join("|");
+  const falsy = FALSE.join("|");
   throw new RangeError(
     `Expected (${truthy}) or (${falsy}) for the ${name} environment variable. Got '${env}' instead.`
   );
@@ -114,7 +112,7 @@ function makeSetDebugFlagFunction(debug) {
   if (config.logLevel === DEBUG) {
     return () => true;
   }
-  if (typeof config.logDebug !== 'string') {
+  if (typeof config.logDebug !== "string") {
     return () => false;
   }
   const log = [];
@@ -122,41 +120,41 @@ function makeSetDebugFlagFunction(debug) {
   config.logDebug
     .split(/[, ]+/)
     .filter((p) => !!p)
-    .map((p) => p.replace(/\*/g, '.*'))
+    .map((p) => p.replace(/\*/g, ".*"))
     .forEach((p) => {
-      if (p.startsWith('-')) {
+      if (p.startsWith("-")) {
         not.push(p.slice(1));
       } else {
         log.push(p);
       }
     });
-  const logRE = new RegExp(`^(?:${log.join('|') || '.*'})$`);
-  const notRE = new RegExp(`^(?:${not.join('|') || '(?!)'})$`);
+  const logRE = new RegExp(`^(?:${log.join("|") || ".*"})$`);
+  const notRE = new RegExp(`^(?:${not.join("|") || "(?!)"})$`);
   return (topic) => logRE.test(topic) && !notRE.test(topic);
 }
 
 function writeLogEntry(output) {
   const timestamp = new Date().toISOString();
-  const date = timestamp.substring(0, timestamp.indexOf('T'));
+  const date = timestamp.substring(0, timestamp.indexOf("T"));
   const filename = `${config.logFile}.${date}.log`;
-  const entry = `${timestamp} ${output}${os.EOL}`;
+  const entry = `${timestamp} ${output}${EOL}`;
   mkdirs(config.logDir);
-  fs.appendFileSync(path.resolve(config.logDir, filename), entry);
+  appendFileSync(resolve(config.logDir, filename), entry);
 }
 
 function getLogFiles() {
   try {
-    const files = fs.readdirSync(config.logDir);
+    const files = readdirSync(config.logDir);
     const retval = [];
     for (const file of files) {
-      if (file.startsWith(config.logFile + '.') && file.endsWith('.log')) {
+      if (file.startsWith(config.logFile + ".") && file.endsWith(".log")) {
         retval.push(file);
       }
     }
     retval.sort();
     return retval;
   } catch (err) {
-    if (err.code === 'ENOENT') {
+    if (err.code === "ENOENT") {
       return [];
     }
     throw err;
@@ -167,7 +165,7 @@ function rollLogFiles() {
   const files = getLogFiles();
   if (files.length > config.logFiles) {
     for (let i = 0; i < files.length - config.logFiles; i++) {
-      fs.unlinkSync(path.resolve(config.logDir, files[i]));
+      fs.unlinkSync(resolve(config.logDir, files[i]));
     }
   }
 }
@@ -232,7 +230,7 @@ class Logger {
     if (length === 0) {
       return null;
     }
-    return path.join(config.logDir, files[length - 1]);
+    return join(config.logDir, files[length - 1]);
   }
 
   get config() {
@@ -240,23 +238,23 @@ class Logger {
   }
 }
 
-function pkglogger(topic) {
+export function createLog(topic) {
   // Check for module or import.meta.
-  if (topic !== null && typeof topic === 'object') {
-    if (typeof topic.filename === 'string') {
-      return new Logger(path.basename(topic.filename, '.js'));
+  if (topic !== null && typeof topic === "object") {
+    if (typeof topic.filename === "string") {
+      return new Logger(basename(topic.filename, ".js"));
     }
-    if (typeof topic.url === 'string') {
-      const filename = url.fileURLToPath(topic.url);
-      if (filename.endsWith('.mjs')) {
-        return new Logger(path.basename(filename, '.mjs'));
+    if (typeof topic.url === "string") {
+      const filename = fileURLToPath(topic.url);
+      if (filename.endsWith(".mjs")) {
+        return new Logger(basename(filename, ".mjs"));
       } else {
-        return new Logger(path.basename(filename, '.js'));
+        return new Logger(basename(filename, ".js"));
       }
     }
   }
   // Check for string.
-  if (typeof topic === 'string') {
+  if (typeof topic === "string") {
     topic = topic.trim();
     if (topic) {
       return new Logger(topic);
@@ -265,5 +263,3 @@ function pkglogger(topic) {
   // Return default.
   return new Logger(pkg.packageJson.name);
 }
-
-module.exports = pkglogger;

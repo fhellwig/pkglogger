@@ -1,12 +1,11 @@
 {
   "name": "pkglogger",
-  "version": "4.1.6",
+  "version": "4.2.0",
   "description": "A zero-configuration logger that writes to date-stamped log files.",
   "type": "module",
-  "main": "pkglogger.cjs",
-  "exports": {
-    "import": "./pkglogger.mjs",
-    "require": "./pkglogger.cjs"
+  "main": "pkglogger.js",
+  "scripts": {
+    "test": "node example"
   },
   "keywords": [
     "logging"
@@ -18,8 +17,8 @@
     "url": "git://github.com/fhellwig/pkglogger.git"
   },
   "dependencies": {
-    "chalk": "^4.0.0",
-    "mkdirs": "0.0.3",
-    "read-pkg-up": "^7.0.1"
+    "chalk": "^5.0.1",
+    "mkdirs": "^0.0.3",
+    "read-pkg-up": "^9.1.0"
   }
 }

@@ -1,6 +1,11 @@
 pkglogger changes
 =================
 
+4.2.0
+-----
+
+- Convert to ESM only.
+
 4.1.6
 -----
 
