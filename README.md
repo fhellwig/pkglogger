@@ -2,7 +2,7 @@
 
 A zero-configuration logger that writes to date-stamped log files.
 
-Version: 4.2.0
+Version: 4.2.1
 
 ## Quick Start
 
@@ -15,13 +15,13 @@ npm install pkglogger
 Import the `createLog` function from the `pkglogger` module.
 
 ```javascript
-import { createLog } from "pkglogger";
+import { createLog } from 'pkglogger';
 ```
 
 Use the `createLog()` function to create a log for your module.
 
 ```javascript
-const log = createLog("server");
+const log = createLog('server');
 
 server
   .start(port)
@@ -54,9 +54,7 @@ log.debug(msg); // logs the message with severity 3 (DEBUG)
 
 The format of each log message is fixed:
 
-    <timestamp> [<severity>] <topic>: <message>
-
-When writing to the console, the timestamp is omitted from the output.
+    <timestamp> [<pid>] <severity> <topic>: <message>
 
 ## Configuration
 
@@ -71,8 +69,7 @@ console.dir(log.config);
   logFile: {string},
   logFiles: {number},
   logLevel: {number},
-  logDebug: {string},
-  logConsole: {boolean}
+  logDebug: {string}
 }
 ```
 
@@ -107,7 +104,7 @@ Please note that the `LOG_DEBUG` environment variable, if set, takes precedence 
 
 ### Console Output
 
-Log messages are also written to the console if the `NODE_ENV` environment variable is _not_ set to `'production'`. This can be overridden by setting `LOG_CONSOLE=false`. Console output is styled using [chalk](https://www.npmjs.com/package/chalk). The color-coding of message can be disabled by setting `FORCE_COLOR=0`.
+Log messages are also written to the console (`stderr`) _unless_ `stderr` is not connected to a TTY or we are in [production mode](https://nodejs.dev/learn/nodejs-the-difference-between-development-and-production) (`NODE_ENV=production`). Console output is styled using [chalk](https://www.npmjs.com/package/chalk). The color-coding of message can be disabled by setting `FORCE_COLOR=0`.
 
 ## License
 

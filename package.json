@@ -1,6 +1,6 @@
 {
   "name": "pkglogger",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "A zero-configuration logger that writes to date-stamped log files.",
   "type": "module",
   "main": "pkglogger.js",
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "chalk": "^5.0.1",
-    "mkdirs": "^0.0.3",
+    "mkdirs": "^1.0.0",
     "read-pkg-up": "^9.1.0"
   }
 }

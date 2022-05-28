@@ -20,13 +20,13 @@
  * IN THE SOFTWARE.
  */
 
-import chalk from "chalk";
-import { appendFileSync, readdirSync } from "fs";
-import mkdirs from "mkdirs";
-import { EOL } from "os";
-import { basename, dirname, join, resolve } from "path";
-import { readPackageUpSync } from "read-pkg-up";
-import { fileURLToPath } from "url";
+import chalk from 'chalk';
+import { appendFileSync, readdirSync } from 'fs';
+import { mkdirs } from 'mkdirs';
+import { EOL } from 'os';
+import { basename, dirname, join, resolve } from 'path';
+import { readPackageUpSync } from 'read-pkg-up';
+import { fileURLToPath } from 'url';
 
 const ERROR = 0;
 const WARN = 1;
@@ -35,22 +35,22 @@ const DEBUG = 3;
 
 const DEFAULT_LEVEL = INFO;
 
-const LEVELS = ["ERROR", "WARN", "INFO", "DEBUG"];
-
-const TRUE = ["1", "true", "yes", "on"];
-const FALSE = ["0", "false", "no", "off"];
+const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
+const LEVELS_PAD = ['ERROR', 'WARN ', 'INFO ', 'DEBUG'];
+const chalkfn = [chalk.redBright, chalk.magenta, chalk.blue, chalk.green];
 
 const pkg = readPackageUpSync();
 const env = process.env;
-const isProduction = env.NODE_ENV === "production";
+
+const isTTY = process.stderr.isTTY;
+const isProduction = env.NODE_ENV === 'production';
 
 const config = {
-  logDir: env.LOG_DIR || join(dirname(pkg.path), "logs"),
+  logDir: env.LOG_DIR || join(dirname(pkg.path), 'logs'),
   logFile: env.LOG_FILE || pkg.packageJson.name,
   logFiles: parseInt(env.LOG_FILES) || 5,
   logLevel: getLogLevel(),
-  logDebug: env.LOG_DEBUG || env.DEBUG,
-  logConsole: getBoolean("LOG_CONSOLE", !isProduction),
+  logDebug: env.LOG_DEBUG || env.DEBUG
 };
 
 const setDebugFlag = makeSetDebugFlagFunction();
@@ -58,7 +58,7 @@ const setDebugFlag = makeSetDebugFlagFunction();
 function getLogLevel() {
   const env = process.env.LOG_LEVEL;
   // environment variable not set (undefined)
-  if (typeof env !== "string") {
+  if (typeof env !== 'string') {
     return DEFAULT_LEVEL;
   }
   const logLevel = env.trim().toUpperCase();
@@ -86,33 +86,11 @@ function getLogLevel() {
   return number;
 }
 
-function getBoolean(name, defaultValue = false) {
-  const env = process.env[name];
-  if (typeof env !== "string") {
-    return defaultValue;
-  }
-  const str = env.trim().toLowerCase();
-  if (str.length === 0) {
-    return defaultValue;
-  }
-  if (TRUE.indexOf(str) !== -1) {
-    return true;
-  }
-  if (FALSE.indexOf(str) !== -1) {
-    return false;
-  }
-  const truthy = TRUE.join("|");
-  const falsy = FALSE.join("|");
-  throw new RangeError(
-    `Expected (${truthy}) or (${falsy}) for the ${name} environment variable. Got '${env}' instead.`
-  );
-}
-
 function makeSetDebugFlagFunction(debug) {
   if (config.logLevel === DEBUG) {
     return () => true;
   }
-  if (typeof config.logDebug !== "string") {
+  if (typeof config.logDebug !== 'string') {
     return () => false;
   }
   const log = [];
@@ -120,24 +98,22 @@ function makeSetDebugFlagFunction(debug) {
   config.logDebug
     .split(/[, ]+/)
     .filter((p) => !!p)
-    .map((p) => p.replace(/\*/g, ".*"))
+    .map((p) => p.replace(/\*/g, '.*'))
     .forEach((p) => {
-      if (p.startsWith("-")) {
+      if (p.startsWith('-')) {
         not.push(p.slice(1));
       } else {
         log.push(p);
       }
     });
-  const logRE = new RegExp(`^(?:${log.join("|") || ".*"})$`);
-  const notRE = new RegExp(`^(?:${not.join("|") || "(?!)"})$`);
+  const logRE = new RegExp(`^(?:${log.join('|') || '.*'})$`);
+  const notRE = new RegExp(`^(?:${not.join('|') || '(?!)'})$`);
   return (topic) => logRE.test(topic) && !notRE.test(topic);
 }
 
-function writeLogEntry(output) {
-  const timestamp = new Date().toISOString();
-  const date = timestamp.substring(0, timestamp.indexOf("T"));
+function writeLogEntry(entry) {
+  const date = entry.substring(0, entry.indexOf('T'));
   const filename = `${config.logFile}.${date}.log`;
-  const entry = `${timestamp} ${output}${EOL}`;
   mkdirs(config.logDir);
   appendFileSync(resolve(config.logDir, filename), entry);
 }
@@ -147,14 +123,14 @@ function getLogFiles() {
     const files = readdirSync(config.logDir);
     const retval = [];
     for (const file of files) {
-      if (file.startsWith(config.logFile + ".") && file.endsWith(".log")) {
+      if (file.startsWith(config.logFile + '.') && file.endsWith('.log')) {
         retval.push(file);
       }
     }
     retval.sort();
     return retval;
   } catch (err) {
-    if (err.code === "ENOENT") {
+    if (err.code === 'ENOENT') {
       return [];
     }
     throw err;
@@ -170,23 +146,42 @@ function rollLogFiles() {
   }
 }
 
-function writeToConsole(sev, output) {
-  switch (sev) {
-    case ERROR:
-      console.error(chalk.redBright(output));
-      break;
-    case WARN:
-      console.error(chalk.magenta(output));
-      break;
-    case INFO:
-      console.log(chalk.blue(output));
-      break;
-    case DEBUG:
-      console.log(chalk.green(output));
-      break;
-  }
+function formatEntry(topic, sev, msg) {
+  const timestamp = new Date().toISOString();
+  const level = LEVELS_PAD[sev];
+  const str = msg instanceof Error ? msg.message : msg.toString();
+  return `${timestamp} [${process.pid}] ${level} ${topic}: ${str}${EOL}`;
 }
 
+export function createLog(topic) {
+  // Check for module or import.meta.
+  if (topic !== null && typeof topic === 'object') {
+    if (typeof topic.filename === 'string') {
+      if (filename.endsWith('.cjs')) {
+        return new Logger(basename(topic.filename, '.cjs'));
+      } else {
+        return new Logger(basename(topic.filename, '.js'));
+      }
+    }
+    if (typeof topic.url === 'string') {
+      const filename = fileURLToPath(topic.url);
+      if (filename.endsWith('.mjs')) {
+        return new Logger(basename(filename, '.mjs'));
+      } else {
+        return new Logger(basename(filename, '.js'));
+      }
+    }
+  }
+  // Check for string.
+  if (typeof topic === 'string') {
+    topic = topic.trim();
+    if (topic) {
+      return new Logger(topic);
+    }
+  }
+  // Return default.
+  return new Logger(pkg.packageJson.name);
+}
 class Logger {
   constructor(topic) {
     this._topic = topic;
@@ -214,13 +209,13 @@ class Logger {
   }
 
   _log(sev, msg) {
-    const output = `[${LEVELS[sev]}] ${this._topic}: ${msg.toString()}`;
+    const entry = formatEntry(this._topic, sev, msg);
     if (config.logFiles > 0) {
-      writeLogEntry(output);
+      writeLogEntry(entry);
       rollLogFiles();
     }
-    if (config.logConsole) {
-      writeToConsole(sev, output);
+    if (isTTY && !isProduction) {
+      process.stderr.write(chalkfn[sev](entry));
     }
   }
 
@@ -236,30 +231,4 @@ class Logger {
   get config() {
     return { logTopic: this._topic, ...config };
   }
-}
-
-export function createLog(topic) {
-  // Check for module or import.meta.
-  if (topic !== null && typeof topic === "object") {
-    if (typeof topic.filename === "string") {
-      return new Logger(basename(topic.filename, ".js"));
-    }
-    if (typeof topic.url === "string") {
-      const filename = fileURLToPath(topic.url);
-      if (filename.endsWith(".mjs")) {
-        return new Logger(basename(filename, ".mjs"));
-      } else {
-        return new Logger(basename(filename, ".js"));
-      }
-    }
-  }
-  // Check for string.
-  if (typeof topic === "string") {
-    topic = topic.trim();
-    if (topic) {
-      return new Logger(topic);
-    }
-  }
-  // Return default.
-  return new Logger(pkg.packageJson.name);
 }
