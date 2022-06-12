@@ -1,5 +1,9 @@
 # pkglogger changes
 
+## 4.2.2
+
+- Fixed fs ESM bug (fs.unlinkSync).
+
 ## 4.2.1
 
 - Updated mkdirs to version 1.0.0.

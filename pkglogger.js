@@ -21,7 +21,7 @@
  */
 
 import chalk from 'chalk';
-import { appendFileSync, readdirSync } from 'fs';
+import { appendFileSync, readdirSync, unlinkSync } from 'fs';
 import { mkdirs } from 'mkdirs';
 import { EOL } from 'os';
 import { basename, dirname, join, resolve } from 'path';
@@ -141,7 +141,7 @@ function rollLogFiles() {
   const files = getLogFiles();
   if (files.length > config.logFiles) {
     for (let i = 0; i < files.length - config.logFiles; i++) {
-      fs.unlinkSync(resolve(config.logDir, files[i]));
+      unlinkSync(resolve(config.logDir, files[i]));
     }
   }
 }
