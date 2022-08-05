@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Frank Hellwig
+ * Copyright (c) 2022 Frank Hellwig
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -36,7 +36,6 @@ const DEBUG = 3;
 const DEFAULT_LEVEL = INFO;
 
 const LEVELS = ['ERROR', 'WARN', 'INFO', 'DEBUG'];
-const LEVELS_PAD = ['ERROR', 'WARN ', 'INFO ', 'DEBUG'];
 const chalkfn = [chalk.redBright, chalk.magenta, chalk.blue, chalk.green];
 
 const pkg = readPackageUpSync();
@@ -148,7 +147,7 @@ function rollLogFiles() {
 
 function formatEntry(topic, sev, msg) {
   const timestamp = new Date().toISOString();
-  const level = LEVELS_PAD[sev];
+  const level = LEVELS[sev];
   const str = msg instanceof Error ? msg.message : msg.toString();
   return `${timestamp} [${process.pid}] ${level} ${topic}: ${str}${EOL}`;
 }
@@ -182,6 +181,7 @@ export function createLog(topic) {
   // Return default.
   return new Logger(pkg.packageJson.name);
 }
+
 class Logger {
   constructor(topic) {
     this._topic = topic;

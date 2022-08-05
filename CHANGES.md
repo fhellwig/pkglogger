@@ -1,5 +1,9 @@
 # pkglogger changes
 
+## 4.2.3
+
+- Removed padding from severity.
+
 ## 4.2.2
 
 - Fixed fs ESM bug (fs.unlinkSync).
