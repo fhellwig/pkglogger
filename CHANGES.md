@@ -1,5 +1,9 @@
 # pkglogger changes
 
+## 4.2.4
+
+- Console output does not include timestamp or pid.
+
 ## 4.2.3
 
 - Removed padding from severity.

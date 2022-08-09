@@ -145,11 +145,15 @@ function rollLogFiles() {
   }
 }
 
-function formatEntry(topic, sev, msg) {
+function formatEntry(topic, sev, msg, isTTY) {
   const timestamp = new Date().toISOString();
   const level = LEVELS[sev];
   const str = msg instanceof Error ? msg.message : msg.toString();
-  return `${timestamp} [${process.pid}] ${level} ${topic}: ${str}${EOL}`;
+  if (isTTY) {
+    return `${level} ${topic}: ${str}${EOL}`;
+  } else {
+    return `${timestamp} [${process.pid}] ${level} ${topic}: ${str}${EOL}`;
+  }
 }
 
 export function createLog(topic) {
@@ -209,12 +213,13 @@ class Logger {
   }
 
   _log(sev, msg) {
-    const entry = formatEntry(this._topic, sev, msg);
+    const entry = formatEntry(this._topic, sev, msg, false);
     if (config.logFiles > 0) {
       writeLogEntry(entry);
       rollLogFiles();
     }
     if (isTTY && !isProduction) {
+      const entry = formatEntry(this._topic, sev, msg, true);
       process.stderr.write(chalkfn[sev](entry));
     }
   }
